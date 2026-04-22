@@ -19,6 +19,7 @@ document.addEventListener('alpine:init', () => {
     selectedPlaceId: null,
     gistUrl: '',
     lastUpdated: null,
+    showDayPicker: false,
 
     // Computed
     _simulatedDate: null,
@@ -58,10 +59,31 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    get realToday() {
+      return new Date().toISOString().slice(0, 10);
+    },
+
     get isSimulating() {
       if (!this._simulatedDate) return false;
-      const realToday = new Date().toISOString().slice(0, 10);
-      return this._simulatedDate !== realToday;
+      return this._simulatedDate !== this.realToday;
+    },
+
+    dayLabel(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    },
+
+    formatDow(iso) {
+      return new Date(iso).toLocaleDateString('de-DE', { weekday: 'short' });
+    },
+
+    formatDom(iso) {
+      return new Date(iso).getDate().toString().padStart(2, '0');
+    },
+
+    formatMon(iso) {
+      return new Date(iso).toLocaleDateString('de-DE', { month: 'short' });
     },
 
     pickDate(iso) {

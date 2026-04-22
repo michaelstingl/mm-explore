@@ -40,38 +40,210 @@ header h1 {
   cursor: pointer;
   padding: var(--size-2);
   color: var(--color-text, #1A1A1A);
+  line-height: 1;
 }
 
-.date-picker {
+.day-btn {
   background: white;
   border: 1px solid var(--stone-3);
   border-radius: var(--radius-2);
-  padding: var(--size-1) var(--size-2);
+  padding: var(--size-2) var(--size-3);
   font-size: var(--font-size-1);
   font-family: inherit;
   color: var(--color-text, #1A1A1A);
-  min-width: 8ch;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-1);
+  font-weight: 500;
 }
 
-.date-picker.simulating {
+.day-btn.simulating {
   border-color: var(--color-primary, #E8743B);
-  background: color-mix(in srgb, var(--color-primary, #E8743B) 10%, white);
+  background: color-mix(in srgb, var(--color-primary, #E8743B) 12%, white);
+  color: var(--color-primary, #E8743B);
   font-weight: 600;
 }
 
-.date-reset {
-  background: var(--color-primary, #E8743B);
-  color: white;
-  border: none;
-  border-radius: var(--radius-round);
-  width: 1.8em;
-  height: 1.8em;
-  font-size: var(--font-size-2);
-  cursor: pointer;
-  display: flex;
+.day-btn .badge {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  width: 1.2em;
+  height: 1.2em;
+  background: var(--color-primary, #E8743B);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7em;
+}
+
+/* Bottom sheet */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  animation: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet {
+  background: white;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  border-top-left-radius: var(--radius-4);
+  border-top-right-radius: var(--radius-4);
+  display: flex;
+  flex-direction: column;
+  animation: slide-up 0.25s ease-out;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--stone-3);
+  border-radius: var(--radius-round);
+  margin: var(--size-2) auto;
+  flex-shrink: 0;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--size-2) var(--size-4);
+  border-bottom: 1px solid var(--stone-2);
+  flex-shrink: 0;
+}
+
+.sheet-header h2 {
+  margin: 0;
+  font-size: var(--font-size-4);
+}
+
+.day-list {
+  overflow-y: auto;
+  padding: var(--size-2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+}
+
+.day-card {
+  display: flex;
+  align-items: center;
+  gap: var(--size-3);
+  background: white;
+  border: 2px solid transparent;
+  border-radius: var(--radius-3);
+  padding: var(--size-3);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--color-text, #1A1A1A);
+  transition: background 0.1s ease-out;
+}
+
+.day-card:hover {
+  background: var(--stone-1);
+}
+
+.day-card.travel {
+  border-left: 4px solid var(--color-primary, #E8743B);
+}
+
+.day-card.stay {
+  border-left: 4px solid var(--color-accent, #2E5266);
+}
+
+.day-card.active {
+  background: color-mix(in srgb, var(--color-primary, #E8743B) 10%, white);
+  border-color: var(--color-primary, #E8743B);
+}
+
+.day-card.is-today:not(.active) {
+  background: var(--stone-1);
+}
+
+.day-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 3.5em;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.day-date .day-dow {
+  font-size: var(--font-size-0);
+  text-transform: uppercase;
+  color: var(--stone-7);
+  letter-spacing: 0.05em;
+}
+
+.day-date .day-dom {
+  font-size: var(--font-size-5);
+  font-weight: 700;
+  margin: 2px 0;
+}
+
+.day-date .day-mon {
+  font-size: var(--font-size-0);
+  color: var(--stone-7);
+}
+
+.day-icon {
+  font-size: var(--font-size-4);
+  flex-shrink: 0;
+}
+
+.day-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+}
+
+.day-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-badge {
+  font-size: var(--font-size-0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary, #E8743B);
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.sheet-footer {
+  padding: var(--size-3) var(--size-4);
+  border-top: 1px solid var(--stone-2);
+  flex-shrink: 0;
+}
+
+.sheet-footer .btn-secondary {
+  width: 100%;
 }
 
 /* Empty state */

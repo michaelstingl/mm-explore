@@ -19,23 +19,57 @@
     <header>
       <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
       <div class="header-actions">
-        <input
-          type="date"
-          class="date-picker"
-          :value="today"
-          @change="pickDate($event.target.value)"
-          :min="bundle?.trip?.from_date"
-          :max="bundle?.trip?.to_date"
-          :class="isSimulating ? 'simulating' : ''"
-          aria-label="Tag wählen">
         <button
-          x-show="isSimulating"
-          @click="resetDate()"
-          class="date-reset"
-          aria-label="Heute">↺</button>
+          x-show="bundle"
+          @click="showDayPicker = true"
+          :class="isSimulating ? 'day-btn simulating' : 'day-btn'"
+          aria-label="Tag wählen">
+          <span x-text="dayLabel(today)"></span>
+          <template x-if="isSimulating"><span class="badge">↺</span></template>
+        </button>
         <button @click="view = (view === 'settings' ? 'main' : 'settings')" class="icon-btn" aria-label="Einstellungen">⚙</button>
       </div>
     </header>
+
+    <!-- Day Picker Sheet -->
+    <div x-show="showDayPicker" class="sheet-backdrop" @click="showDayPicker = false" x-cloak>
+      <div class="sheet" @click.stop>
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <h2>Reise-Tage</h2>
+          <button @click="showDayPicker = false" class="icon-btn" aria-label="Schließen">✕</button>
+        </div>
+        <div class="day-list">
+          <template x-for="day in bundle?.days || []" :key="day.date">
+            <button
+              class="day-card"
+              :class="{
+                'active': day.date === today,
+                'is-today': day.date === realToday,
+                'travel': day.type === 'travel',
+                'stay': day.type === 'stay'
+              }"
+              @click="pickDate(day.date); showDayPicker = false">
+              <div class="day-date">
+                <span class="day-dow" x-text="formatDow(day.date)"></span>
+                <span class="day-dom" x-text="formatDom(day.date)"></span>
+                <span class="day-mon" x-text="formatMon(day.date)"></span>
+              </div>
+              <div class="day-icon" x-text="day.type === 'travel' ? '🚗' : '🏖️'"></div>
+              <div class="day-main">
+                <span class="day-title" x-text="day.title"></span>
+                <template x-if="day.date === realToday">
+                  <span class="day-badge">heute</span>
+                </template>
+              </div>
+            </button>
+          </template>
+        </div>
+        <div class="sheet-footer">
+          <button @click="resetDate(); showDayPicker = false" class="btn-secondary">Zurück zu heute</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Loading -->
     <template x-if="loading">
