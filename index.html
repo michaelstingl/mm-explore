@@ -139,6 +139,11 @@
 
         <hr>
 
+        <button @click="shareTrip()" :disabled="!gistUrl" class="btn-primary">Reise teilen 📤</button>
+        <p class="muted">Sendet einen Link, über den die App automatisch mit den Reisedaten startet.</p>
+
+        <hr>
+
         <button @click="fetchBundle()" :disabled="!gistUrl" class="btn-secondary">Jetzt neu laden</button>
         <p x-show="lastUpdated" class="muted">
           Zuletzt aktualisiert: <span x-text="lastUpdated && new Date(lastUpdated).toLocaleString('de-DE')"></span>

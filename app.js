@@ -175,6 +175,34 @@ document.addEventListener('alpine:init', () => {
       localStorage.setItem('mm_ios_hint_dismissed', '1');
     },
 
+    async shareTrip() {
+      const gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL);
+      if (!gistUrl) {
+        alert('Keine Gist-URL konfiguriert.');
+        return;
+      }
+      const shareUrl = `${location.origin}${location.pathname}#gist=${encodeURIComponent(gistUrl)}`;
+      const shareData = {
+        title: this.bundle?.trip?.title || 'M+M Explore',
+        text: this.bundle?.trip?.subtitle || 'Unser Reise-Begleiter',
+        url: shareUrl
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('Share failed', e);
+        }
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link in die Zwischenablage kopiert!');
+      } catch {
+        prompt('Link kopieren:', shareUrl);
+      }
+    },
+
     get isSimulating() {
       if (!this._simulatedDate) return false;
       return this._simulatedDate !== this.realToday;
