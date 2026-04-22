@@ -44,7 +44,9 @@
             <section class="cal-month">
               <h3 x-text="month.label"></h3>
               <div class="cal-weekdays">
-                <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+                <template x-for="name in weekdayHeaders" :key="name">
+                  <span x-text="name"></span>
+                </template>
               </div>
               <div class="cal-grid">
                 <template x-for="(cell, idx) in month.cells" :key="idx">

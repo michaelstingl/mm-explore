@@ -6,6 +6,32 @@ const STORAGE_KEY = {
   LAST_PLACE: 'mm_last_place'
 };
 
+// Locale helpers — respect system preferences
+const LOCALE = navigator.language || 'de-DE';
+
+function getFirstDayOfWeek() {
+  try {
+    const info = new Intl.Locale(LOCALE).getWeekInfo?.() ?? new Intl.Locale(LOCALE).weekInfo;
+    return info?.firstDay ?? 1; // 1 = Monday (ISO default)
+  } catch {
+    return 1;
+  }
+}
+
+function getWeekdayNames(format = 'short') {
+  // Returns 7 names starting at locale's firstDay
+  const firstDay = getFirstDayOfWeek(); // 1=Mon, 7=Sun
+  const fmt = new Intl.DateTimeFormat(LOCALE, { weekday: format });
+  const names = [];
+  // Anchor: 2024-01-01 is a Monday
+  for (let i = 0; i < 7; i++) {
+    const dayIndex = ((firstDay - 1) + i) % 7; // 0=Mon..6=Sun
+    const d = new Date(2024, 0, 1 + dayIndex); // Jan 1, 2024 + offset
+    names.push(fmt.format(d));
+  }
+  return names;
+}
+
 document.addEventListener('alpine:init', () => {
   Alpine.data('app', () => ({
     // State
@@ -71,11 +97,11 @@ document.addEventListener('alpine:init', () => {
     dayLabel(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+      return d.toLocaleDateString(LOCALE, { weekday: 'short', day: '2-digit', month: '2-digit' });
     },
 
     formatDow(iso) {
-      return new Date(iso).toLocaleDateString('de-DE', { weekday: 'short' });
+      return new Date(iso).toLocaleDateString(LOCALE, { weekday: 'short' });
     },
 
     formatDom(iso) {
@@ -83,7 +109,11 @@ document.addEventListener('alpine:init', () => {
     },
 
     formatMon(iso) {
-      return new Date(iso).toLocaleDateString('de-DE', { month: 'short' });
+      return new Date(iso).toLocaleDateString(LOCALE, { month: 'short' });
+    },
+
+    get weekdayHeaders() {
+      return getWeekdayNames('short');
     },
 
     get calendarMonths() {
@@ -96,11 +126,16 @@ document.addEventListener('alpine:init', () => {
       let cursor = new Date(from.slice(0, 7) + '-01');
       const end = new Date(to.slice(0, 7) + '-01');
 
+      const firstDayOfWeek = getFirstDayOfWeek(); // 1=Mon, 7=Sun
+
       while (cursor <= end) {
         const y = cursor.getFullYear();
         const m = cursor.getMonth();
         const firstOfMonth = new Date(y, m, 1);
-        const firstDow = (firstOfMonth.getDay() + 6) % 7; // Mon=0, Sun=6
+        // getDay(): 0=Sun, 1=Mon ... 6=Sat
+        // We want offset from firstDayOfWeek
+        const domDay = firstOfMonth.getDay() === 0 ? 7 : firstOfMonth.getDay();
+        const firstDow = (domDay - firstDayOfWeek + 7) % 7;
         const daysInMonth = new Date(y, m + 1, 0).getDate();
 
         const allCells = [];
@@ -131,7 +166,7 @@ document.addEventListener('alpine:init', () => {
 
         months.push({
           key: `${y}-${m}`,
-          label: cursor.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }),
+          label: cursor.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' }),
           cells
         });
 
@@ -275,12 +310,13 @@ document.addEventListener('alpine:init', () => {
     formatCheckin(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleString('de-DE', {
+      return d.toLocaleString(LOCALE, {
         weekday: 'short',
         day: '2-digit',
         month: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hourCycle: 'h23'
       });
     },
 
