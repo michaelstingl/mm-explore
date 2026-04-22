@@ -320,7 +320,9 @@ document.addEventListener('alpine:init', () => {
         alert('Keine Gist-URL konfiguriert.');
         return;
       }
-      const shareUrl = `${location.origin}${location.pathname}#gist=${encodeURIComponent(gistUrl)}`;
+      // Use query param (?gist=) instead of fragment (#gist=) — fragments are stripped
+      // when recipient adds the PWA to iOS home screen, query params are preserved in start_url.
+      const shareUrl = `${location.origin}${location.pathname}?gist=${encodeURIComponent(gistUrl)}`;
       const shareData = {
         title: this.bundle?.trip?.title || 'M+M Explore',
         text: this.bundle?.trip?.subtitle || 'Unser Reise-Begleiter',
@@ -467,12 +469,21 @@ document.addEventListener('alpine:init', () => {
     },
 
     parseFragment() {
-      const hash = window.location.hash;
-      const match = hash.match(/#gist=(.+)/);
-      if (match) {
-        const decoded = decodeURIComponent(match[1]);
-        localStorage.setItem(STORAGE_KEY.GIST_URL, decoded);
-        history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Accept gist URL from either ?gist= (query, iOS-install-safe) or #gist= (fragment, legacy)
+      let gistParam = null;
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('gist')) {
+        gistParam = params.get('gist');
+        params.delete('gist');
+      }
+      if (!gistParam) {
+        const m = window.location.hash.match(/#gist=(.+)/);
+        if (m) gistParam = decodeURIComponent(m[1]);
+      }
+      if (gistParam) {
+        localStorage.setItem(STORAGE_KEY.GIST_URL, gistParam);
+        const cleanSearch = params.toString() ? '?' + params.toString() : '';
+        history.replaceState(null, '', window.location.pathname + cleanSearch);
       }
     },
 
