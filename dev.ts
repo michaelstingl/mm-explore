@@ -48,7 +48,7 @@ const debounced = (() => {
 watch(ROOT, { recursive: true }, (_event, filename) => {
   if (!filename) return;
   if (filename.startsWith(".git") || filename.startsWith("node_modules") || filename.startsWith("local")) return;
-  if (filename === "dev.ts") return;
+  if (filename === "dev.ts" || filename.startsWith("dev.ts.tmp")) return;
   if (filename.endsWith("~") || filename.endsWith(".swp")) return;
   pendingChanges.add(filename);
   debounced();
