@@ -14,7 +14,7 @@ document.addEventListener('alpine:init', () => {
     error: null,
     offline: false,
     view: 'main',           // 'main' | 'settings'
-    mode: 'reisen',         // 'reisen' | 'erleben'
+    mode: 'transit',         // 'transit' | 'explore'
     manualOverride: false,
     selectedPlaceId: null,
     gistUrl: '',
@@ -108,14 +108,14 @@ document.addEventListener('alpine:init', () => {
 
     pickDefaultMode() {
       const override = localStorage.getItem(STORAGE_KEY.MODE_OVERRIDE);
-      if (override === 'reisen' || override === 'erleben') {
+      if (override === 'transit' || override === 'explore') {
         this.mode = override;
         this.manualOverride = true;
         return;
       }
       const day = this.todayDay;
-      if (day?.type === 'travel') this.mode = 'reisen';
-      else this.mode = 'erleben';
+      if (day?.type === 'travel') this.mode = 'transit';
+      else this.mode = 'explore';
     },
 
     setMode(m) {

@@ -63,12 +63,12 @@
         <p x-show="offline" class="banner-offline">Offline — Daten vom letzten Laden</p>
 
         <nav class="mode-toggle">
-          <button :class="mode === 'reisen' ? 'active' : ''" @click="setMode('reisen')">Unterwegs 🚗</button>
-          <button :class="mode === 'erleben' ? 'active' : ''" @click="setMode('erleben')">Erleben 🏖️</button>
+          <button :class="mode === 'transit' ? 'active' : ''" @click="setMode('transit')">Unterwegs 🚗</button>
+          <button :class="mode === 'explore' ? 'active' : ''" @click="setMode('explore')">Erleben 🏖️</button>
         </nav>
 
         <!-- Reisen-Modus -->
-        <template x-if="mode === 'reisen'">
+        <template x-if="mode === 'transit'">
           <div>
             <!-- Trip not yet started -->
             <template x-if="tripState === 'before'">
@@ -197,7 +197,7 @@
                 <template x-if="todayDay">
                   <p class="muted" x-text="todayDay.title"></p>
                 </template>
-                <button @click="setMode('erleben')" class="btn-primary">Zu „Erleben" wechseln</button>
+                <button @click="setMode('explore')" class="btn-primary">Zu „Erleben" wechseln</button>
               </div>
             </template>
           </div>
