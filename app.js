@@ -220,6 +220,37 @@ document.addEventListener('alpine:init', () => {
       return buildMapsUrl(location, this.mapsApp, mode);
     },
 
+    toast: { message: '', visible: false, _t: null },
+    showToast(message, ms = 2000) {
+      this.toast.message = message;
+      this.toast.visible = true;
+      if (this.toast._t) clearTimeout(this.toast._t);
+      this.toast._t = setTimeout(() => { this.toast.visible = false; }, ms);
+    },
+
+    async copyLocation(location) {
+      const parts = [];
+      if (location?.name) parts.push(location.name);
+      else if (location?.to) parts.push(location.to);
+      if (location?.address) parts.push(location.address);
+      const [lat, lon] = location?.coords || [];
+      if (typeof lat === 'number' && typeof lon === 'number') {
+        parts.push(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+      }
+      const text = parts.filter(Boolean).join(' · ');
+      if (!text) {
+        this.showToast('Keine Location-Daten');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        this.showToast('Kopiert: ' + (parts[0] || 'Location'));
+      } catch (e) {
+        console.warn('Clipboard write failed', e);
+        prompt('Kopieren:', text);
+      }
+    },
+
     logMapsClick(location, mode) {
       const appUsed = this.mapsApp === 'auto'
         ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')

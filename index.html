@@ -37,6 +37,9 @@
       </div>
     </header>
 
+    <!-- Toast -->
+    <div class="toast" x-show="toast.visible" x-transition.opacity x-text="toast.message" x-cloak></div>
+
     <!-- iOS Install Hint -->
     <div x-show="showIOSInstallHint" class="ios-hint" x-cloak>
       <div class="ios-hint-body">
@@ -269,9 +272,12 @@
                                   <p class="muted poi-note" x-text="poi.note"></p>
                                 </template>
                               </div>
-                              <template x-if="poi.maps_url || poi.coords">
-                                <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen" @click="logMapsClick(poi, 'view')">→</a>
-                              </template>
+                              <div class="poi-actions">
+                                <button @click="copyLocation(poi)" class="btn-copy" aria-label="Ort kopieren">📋</button>
+                                <template x-if="poi.maps_url || poi.coords">
+                                  <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen" @click="logMapsClick(poi, 'view')">→</a>
+                                </template>
+                              </div>
                             </li>
                           </template>
                         </ul>
@@ -334,9 +340,12 @@
                   <template x-if="drive.note">
                     <p class="muted" x-text="drive.note"></p>
                   </template>
-                  <template x-if="drive.maps_url || drive.coords">
-                    <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')">Route öffnen</a>
-                  </template>
+                  <div class="inline-actions">
+                    <template x-if="drive.maps_url || drive.coords">
+                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')">Route öffnen</a>
+                    </template>
+                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-copy" aria-label="Ziel kopieren">📋</button>
+                  </div>
 
                   <template x-if="drive.stops?.length">
                     <div class="stops">
@@ -351,9 +360,12 @@
                                 <span class="muted stop-note" x-text="stop.note"></span>
                               </template>
                             </div>
-                            <template x-if="stop.maps_url || stop.coords">
-                              <a :href="mapsUrl(stop, 'view') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps öffnen" @click="logMapsClick(stop, 'view')">→</a>
-                            </template>
+                            <div class="stop-actions">
+                              <button @click="copyLocation(stop)" class="btn-copy" aria-label="Stopp kopieren">📋</button>
+                              <template x-if="stop.maps_url || stop.coords">
+                                <a :href="mapsUrl(stop, 'view') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps öffnen" @click="logMapsClick(stop, 'view')">→</a>
+                              </template>
+                            </div>
                           </li>
                         </template>
                       </ul>
@@ -377,6 +389,7 @@
                       <template x-if="stay.maps_url || stay.coords">
                         <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')">Route</a>
                       </template>
+                      <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.phone">
                         <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>
                       </template>

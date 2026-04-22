@@ -409,6 +409,53 @@ header h1 {
   font-size: var(--font-size-1);
 }
 
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + var(--size-5));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--stone-12);
+  color: white;
+  padding: var(--size-2) var(--size-4);
+  border-radius: var(--radius-round);
+  font-size: var(--font-size-1);
+  z-index: 300;
+  box-shadow: var(--shadow-4);
+  max-width: 90vw;
+  text-align: center;
+}
+
+/* Inline actions (route + copy next to each other) */
+.inline-actions {
+  display: flex;
+  gap: var(--size-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.stop-actions, .poi-actions {
+  display: flex;
+  gap: var(--size-1);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-copy {
+  background: transparent;
+  border: 1px solid var(--stone-3);
+  border-radius: var(--radius-2);
+  padding: var(--size-1) var(--size-2);
+  cursor: pointer;
+  font-size: var(--font-size-2);
+  line-height: 1;
+  color: var(--color-text, #1A1A1A);
+}
+
+.btn-copy:hover {
+  background: var(--stone-1);
+}
+
 /* Banners */
 .banner-offline {
   background: var(--yellow-3);
