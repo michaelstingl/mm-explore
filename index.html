@@ -50,27 +50,24 @@
               </div>
               <div class="cal-grid">
                 <template x-for="(cell, idx) in month.cells" :key="idx">
-                  <template x-if="cell">
-                    <button
-                      class="cal-cell"
-                      :class="{
-                        'in-trip': cell.inTrip,
-                        'active': cell.date === today,
-                        'is-today': cell.date === realToday,
-                        'travel': cell.day?.type === 'travel',
-                        'stay': cell.day?.type === 'stay'
-                      }"
-                      :disabled="!cell.inTrip"
-                      @click="cell.inTrip && (pickDate(cell.date), showDayPicker = false)">
+                  <button
+                    class="cal-cell"
+                    :class="!cell ? 'empty' : {
+                      'in-trip': cell.inTrip,
+                      'active': cell.date === today,
+                      'is-today': cell.date === realToday,
+                      'travel': cell.day?.type === 'travel',
+                      'stay': cell.day?.type === 'stay'
+                    }"
+                    :disabled="!cell || !cell.inTrip"
+                    @click="cell && cell.inTrip && (pickDate(cell.date), showDayPicker = false)">
+                    <template x-if="cell">
                       <span class="cal-dom" x-text="cell.dom"></span>
-                      <template x-if="cell.symbols.length">
-                        <span class="cal-syms" x-text="cell.symbols.join('')"></span>
-                      </template>
-                    </button>
-                  </template>
-                  <template x-if="!cell">
-                    <span class="cal-cell empty"></span>
-                  </template>
+                    </template>
+                    <template x-if="cell && cell.symbols.length">
+                      <span class="cal-syms" x-text="cell.symbols.join('')"></span>
+                    </template>
+                  </button>
                 </template>
               </div>
             </section>
