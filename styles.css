@@ -419,6 +419,59 @@ header h1 {
   margin-bottom: var(--size-3);
 }
 
+.ios-hint {
+  background: var(--color-accent, #2E5266);
+  color: white;
+  padding: var(--size-3);
+  border-radius: var(--radius-3);
+  margin-bottom: var(--size-3);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-2);
+  box-shadow: var(--shadow-3);
+}
+
+.ios-hint-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+}
+
+.ios-hint-body strong {
+  font-size: var(--font-size-2);
+}
+
+.ios-hint-body p {
+  margin: 0;
+  font-size: var(--font-size-1);
+  line-height: 1.5;
+}
+
+.ios-share {
+  display: inline-block;
+  font-family: -apple-system, 'SF Pro', system-ui;
+  font-size: 1.1em;
+  vertical-align: -2px;
+}
+
+.ios-hint button {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 1.8em;
+  height: 1.8em;
+  font-size: var(--font-size-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
 /* Buttons */
 .btn-primary, .btn-secondary {
   display: inline-block;

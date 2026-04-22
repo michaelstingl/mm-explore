@@ -157,6 +157,24 @@ document.addEventListener('alpine:init', () => {
       return new Date().toISOString().slice(0, 10);
     },
 
+    get isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    },
+
+    get isStandalone() {
+      return window.navigator.standalone === true
+        || window.matchMedia('(display-mode: standalone)').matches;
+    },
+
+    get showIOSInstallHint() {
+      const dismissed = localStorage.getItem('mm_ios_hint_dismissed');
+      return this.isIOS && !this.isStandalone && !dismissed && !!this.bundle;
+    },
+
+    dismissIOSHint() {
+      localStorage.setItem('mm_ios_hint_dismissed', '1');
+    },
+
     get isSimulating() {
       if (!this._simulatedDate) return false;
       return this._simulatedDate !== this.realToday;

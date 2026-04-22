@@ -37,6 +37,18 @@
       </div>
     </header>
 
+    <!-- iOS Install Hint -->
+    <div x-show="showIOSInstallHint" class="ios-hint" x-cloak>
+      <div class="ios-hint-body">
+        <strong>Zum Home-Bildschirm hinzufügen</strong>
+        <p>
+          Tippe unten auf <span class="ios-share">􀈂</span> <strong>Teilen</strong> →
+          <strong>Zum Home-Bildschirm</strong>, um M+M Explore wie eine App zu nutzen.
+        </p>
+      </div>
+      <button @click="dismissIOSHint()" aria-label="Hinweis ausblenden">✕</button>
+    </div>
+
     <!-- Day Picker Sheet — Month Grid -->
     <div x-show="showDayPicker" class="sheet-backdrop" @click="showDayPicker = false" x-cloak>
       <div class="sheet" @click.stop>
