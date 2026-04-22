@@ -457,6 +457,24 @@ header h1 {
   color: white;
 }
 
+/* Inline date buttons (clickable date text) */
+.inline-date {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary, #E8743B);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.inline-date:hover {
+  text-decoration-style: solid;
+}
+
 /* Place picker */
 .place-picker {
   display: flex;

@@ -253,7 +253,10 @@
             <template x-if="tripState === 'before'">
               <div class="card">
                 <h2>Noch nicht losgefahren</h2>
-                <p>Die Reise beginnt am <strong x-text="bundle.trip.from_date"></strong>.</p>
+                <p>
+                  Die Reise beginnt am
+                  <button class="inline-date" @click="pickDate(bundle.trip.from_date)" x-text="formatFullDate(bundle.trip.from_date)"></button>.
+                </p>
               </div>
             </template>
 
@@ -262,6 +265,10 @@
               <div class="card">
                 <h2>Reise vorbei</h2>
                 <p>Hoffe es war schön 💛</p>
+                <p class="muted">
+                  <button class="inline-date" @click="pickDate(bundle.trip.to_date)">Letzter Tag</button>
+                  <span x-text="' · ' + formatFullDate(bundle.trip.to_date)"></span>
+                </p>
               </div>
             </template>
 

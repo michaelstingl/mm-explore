@@ -100,6 +100,12 @@ document.addEventListener('alpine:init', () => {
       return d.toLocaleDateString(LOCALE, { weekday: 'short', day: '2-digit', month: '2-digit' });
     },
 
+    formatFullDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    },
+
     formatDow(iso) {
       return new Date(iso).toLocaleDateString(LOCALE, { weekday: 'short' });
     },
