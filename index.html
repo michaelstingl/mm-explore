@@ -115,11 +115,12 @@
 
         <label>
           Sprache / Locale
-          <select
-            :value="localeOverride"
-            @change="setLocaleOverride($event.target.value)">
+          <select @change="setLocaleOverride($event.target.value)">
             <template x-for="opt in localeOptions" :key="opt.value">
-              <option :value="opt.value" :selected="opt.value === localeOverride" x-text="opt.value ? opt.label : opt.label + ' (' + navigator.language + ')'"></option>
+              <option
+                :value="opt.value"
+                :selected="opt.value === localeOverride"
+                x-text="opt.value === 'auto' ? opt.label + ' (' + navigator.language + ')' : opt.label"></option>
             </template>
           </select>
         </label>

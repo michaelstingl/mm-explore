@@ -8,7 +8,7 @@ const STORAGE_KEY = {
 };
 
 const LOCALE_OPTIONS = [
-  { value: '', label: 'Auto' },
+  { value: 'auto', label: 'Auto' },
   { value: 'de-DE', label: 'Deutsch (DE)' },
   { value: 'de-AT', label: 'Deutsch (AT)' },
   { value: 'de-CH', label: 'Deutsch (CH)' },
@@ -17,6 +17,11 @@ const LOCALE_OPTIONS = [
   { value: 'it-IT', label: 'Italiano' },
   { value: 'fr-FR', label: 'Français' }
 ];
+
+function isValidLocale(tag) {
+  if (!tag) return false;
+  try { new Intl.Locale(tag); return true; } catch { return false; }
+}
 
 document.addEventListener('alpine:init', () => {
   Alpine.data('app', () => ({
@@ -58,7 +63,11 @@ document.addEventListener('alpine:init', () => {
       this.parseFragment();
       this.parseDateQuery();
       this.gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL) || '';
-      this.localeOverride = localStorage.getItem(STORAGE_KEY.LOCALE_OVERRIDE) || '';
+      const storedLocale = localStorage.getItem(STORAGE_KEY.LOCALE_OVERRIDE);
+      this.localeOverride = (storedLocale && (storedLocale === 'auto' || isValidLocale(storedLocale))) ? storedLocale : 'auto';
+      if (storedLocale && this.localeOverride === 'auto') {
+        localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
+      }
       this.loadCachedBundle();
       await this.fetchBundle();
       this.applyTheme();
@@ -66,13 +75,20 @@ document.addEventListener('alpine:init', () => {
     },
 
     get locale() {
-      return this.localeOverride || navigator.language || 'de-DE';
+      if (this.localeOverride && this.localeOverride !== 'auto' && isValidLocale(this.localeOverride)) {
+        return this.localeOverride;
+      }
+      return navigator.language || 'de-DE';
     },
 
     setLocaleOverride(value) {
-      this.localeOverride = value || '';
-      if (value) localStorage.setItem(STORAGE_KEY.LOCALE_OVERRIDE, value);
-      else localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
+      const safe = (value === 'auto' || isValidLocale(value)) ? value : 'auto';
+      this.localeOverride = safe;
+      if (safe && safe !== 'auto') {
+        localStorage.setItem(STORAGE_KEY.LOCALE_OVERRIDE, safe);
+      } else {
+        localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
+      }
     },
 
     get firstDayOfWeek() {
