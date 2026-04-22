@@ -2,6 +2,7 @@
   "name": "M+M Explore",
   "short_name": "MM Explore",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FAF4E8",
   "theme_color": "#E8743B",

@@ -1,8 +1,9 @@
 // Service Worker for M+M Explore
 // Version bumps invalidate shell cache on deploy.
-const VERSION = 'v1-2026-04-22-a';
+const VERSION = 'v1-2026-04-22-c';
 const SHELL_CACHE = `mm-shell-${VERSION}`;
 const GIST_CACHE = `mm-gist-${VERSION}`;
+const MANIFEST_STATE = `mm-manifest-state-${VERSION}`;
 
 const SHELL_FILES = [
   './',
@@ -42,6 +43,35 @@ self.addEventListener('fetch', (event) => {
 
   // Dev-server live-reload WebSocket — bypass
   if (url.pathname === '/__reload') return;
+
+  // manifest.json: rewrite start_url to include current gist query param
+  // This is crucial for iOS "Add to Home Screen" to capture the gist URL.
+  if (url.pathname.endsWith('/manifest.json')) {
+    event.respondWith((async () => {
+      const baseResponse = await fetch(event.request).catch(() => caches.match(event.request));
+      if (!baseResponse) return new Response('{}', { headers: { 'Content-Type': 'application/manifest+json' } });
+      const manifest = await baseResponse.json();
+      // Look up which ?gist= was active when the client loaded this page
+      const clientId = event.clientId || event.resultingClientId;
+      let gistForStart = null;
+      if (clientId) {
+        const client = await self.clients.get(clientId);
+        if (client) {
+          try {
+            const clientUrl = new URL(client.url);
+            gistForStart = clientUrl.searchParams.get('gist');
+          } catch {}
+        }
+      }
+      if (gistForStart) {
+        manifest.start_url = `./?gist=${encodeURIComponent(gistForStart)}`;
+      }
+      return new Response(JSON.stringify(manifest), {
+        headers: { 'Content-Type': 'application/manifest+json; charset=utf-8' }
+      });
+    })());
+    return;
+  }
 
   // Gist raw data: network-first, fall back to cache
   if (url.hostname === 'gist.githubusercontent.com') {
