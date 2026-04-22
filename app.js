@@ -29,22 +29,43 @@ function buildMapsUrl(location, app = 'auto', mode = 'view') {
 
   const [lat, lon] = location.coords || [];
   const hasCoords = typeof lat === 'number' && typeof lon === 'number';
-  const query = location.name
-    ? (location.address ? `${location.name}, ${location.address}` : location.name)
+  // For drives: 'to' is the destination, 'from' is the origin
+  const destName = location.name || location.to;
+  const query = destName
+    ? (location.address ? `${destName}, ${location.address}` : destName)
     : location.address;
+  const origin = location.from;
 
   switch (resolved) {
     case 'apple': {
-      if (mode === 'nav' && hasCoords) return `https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`;
-      if (hasCoords) return `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(location.name || '')}`;
+      if (mode === 'nav') {
+        if (hasCoords) {
+          const p = new URLSearchParams({ daddr: `${lat},${lon}`, dirflg: 'd' });
+          if (origin) p.set('saddr', origin);
+          return `https://maps.apple.com/?${p}`;
+        }
+        if (query) {
+          const p = new URLSearchParams({ daddr: query, dirflg: 'd' });
+          if (origin) p.set('saddr', origin);
+          return `https://maps.apple.com/?${p}`;
+        }
+      }
+      if (hasCoords) return `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(destName || '')}`;
       if (query) return `https://maps.apple.com/?q=${encodeURIComponent(query)}`;
       return location.maps_url || null;
     }
     case 'google': {
-      if (mode === 'nav' && hasCoords) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+      if (mode === 'nav') {
+        const p = new URLSearchParams({ api: '1' });
+        if (hasCoords) p.set('destination', `${lat},${lon}`);
+        else if (query) p.set('destination', query);
+        else break;
+        if (origin) p.set('origin', origin);
+        return `https://www.google.com/maps/dir/?${p}`;
+      }
       if (hasCoords) return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
       if (query) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-      return location.maps_url || null;
+      return null;
     }
     case 'waze': {
       // Waze only makes sense for navigation
@@ -208,9 +229,17 @@ document.addEventListener('alpine:init', () => {
         setting: this.mapsApp,
         resolved: appUsed,
         mode,
-        location: { name: location?.name, coords: location?.coords, maps_url: location?.maps_url },
+        location: {
+          id: location?.id,
+          name: location?.name,
+          from: location?.from,
+          to: location?.to,
+          coords: location?.coords,
+          address: location?.address,
+          maps_url: location?.maps_url
+        },
         url,
-        userAgent: navigator.userAgent.includes('Mac') ? 'Mac' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'other'
+        platform: navigator.userAgent.includes('Mac') ? 'Mac' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'other'
       });
     },
 
