@@ -34,3 +34,131 @@ header button {
   cursor: pointer;
   padding: var(--size-2);
 }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: var(--size-6) var(--size-3);
+}
+
+.empty p {
+  margin-bottom: var(--size-3);
+  color: var(--stone-7);
+}
+
+/* Settings */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-3);
+}
+
+.settings label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+}
+
+.settings input[type="url"] {
+  padding: var(--size-2);
+  font-size: var(--font-size-2);
+  border: 1px solid var(--stone-4);
+  border-radius: var(--radius-2);
+  font-family: var(--font-mono);
+}
+
+.settings button.danger {
+  background: var(--red-7);
+  color: white;
+  border: none;
+  padding: var(--size-2) var(--size-3);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  font-size: var(--font-size-2);
+  align-self: flex-start;
+}
+
+.settings hr {
+  border: none;
+  border-top: 1px solid var(--stone-3);
+  margin: var(--size-3) 0;
+}
+
+.muted {
+  color: var(--stone-7);
+  font-size: var(--font-size-1);
+}
+
+/* Banners */
+.banner-offline {
+  background: var(--yellow-3);
+  color: var(--stone-12);
+  padding: var(--size-2);
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-1);
+  margin-bottom: var(--size-3);
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+  display: inline-block;
+  padding: var(--size-2) var(--size-3);
+  border-radius: var(--radius-2);
+  text-decoration: none;
+  font-size: var(--font-size-2);
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--color-primary, #333);
+  color: white;
+}
+
+.btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--stone-2);
+  color: var(--color-text, #1A1A1A);
+}
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex;
+  gap: var(--size-1);
+  background: var(--stone-2);
+  padding: var(--size-1);
+  border-radius: var(--radius-3);
+  margin-bottom: var(--size-4);
+}
+
+.mode-toggle button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: var(--size-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  font-size: var(--font-size-2);
+  font-family: inherit;
+  color: var(--color-text, #1A1A1A);
+}
+
+.mode-toggle button.active {
+  background: var(--color-primary, #333);
+  color: white;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: var(--radius-3);
+  padding: var(--size-4);
+  margin-bottom: var(--size-3);
+  box-shadow: var(--shadow-2);
+}

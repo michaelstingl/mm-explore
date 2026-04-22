@@ -18,9 +18,64 @@
   <main x-data="app" x-cloak>
     <header>
       <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
-      <button @click="view = 'settings'" aria-label="Einstellungen">⚙</button>
+      <button @click="view = (view === 'settings' ? 'main' : 'settings')" aria-label="Einstellungen">⚙</button>
     </header>
-    <p>Hello world — scaffold läuft.</p>
+
+    <!-- Loading -->
+    <template x-if="loading">
+      <p>Lade…</p>
+    </template>
+
+    <!-- Empty state: kein Bundle, nicht in Settings -->
+    <template x-if="!loading && !bundle && view !== 'settings'">
+      <div class="empty">
+        <p>Noch keine Reise eingerichtet.</p>
+        <button @click="view = 'settings'" class="btn-primary">Einrichten</button>
+      </div>
+    </template>
+
+    <!-- Settings -->
+    <template x-if="view === 'settings'">
+      <section class="settings">
+        <h2>Einstellungen</h2>
+        <label>
+          Gist-URL
+          <input type="url" x-model="gistUrl" placeholder="https://gist.githubusercontent.com/…/raw/travel-bundle-v1.json">
+        </label>
+        <button @click="saveGistUrl()" class="btn-primary">Speichern & laden</button>
+
+        <hr>
+
+        <button @click="fetchBundle()" :disabled="!gistUrl" class="btn-secondary">Jetzt neu laden</button>
+        <p x-show="lastUpdated" class="muted">
+          Zuletzt aktualisiert: <span x-text="lastUpdated && new Date(lastUpdated).toLocaleString('de-DE')"></span>
+        </p>
+
+        <hr>
+
+        <button @click="resetApp()" class="danger">Reset (alles löschen)</button>
+      </section>
+    </template>
+
+    <!-- Main -->
+    <template x-if="view === 'main' && bundle">
+      <section>
+        <p x-show="offline" class="banner-offline">Offline — Daten vom letzten Laden</p>
+
+        <nav class="mode-toggle">
+          <button :class="mode === 'reisen' ? 'active' : ''" @click="setMode('reisen')">Reisen 🚗</button>
+          <button :class="mode === 'erleben' ? 'active' : ''" @click="setMode('erleben')">Erleben 🏖️</button>
+        </nav>
+
+        <!-- Placeholder bis Phase 2/3 -->
+        <div class="card">
+          <p>Modus: <strong x-text="mode"></strong></p>
+          <p>Heute: <span x-text="today"></span></p>
+          <p>Trip-Status: <span x-text="tripState"></span></p>
+          <p x-show="todayDay">Tag heute: <span x-text="todayDay?.title"></span></p>
+        </div>
+      </section>
+    </template>
   </main>
 </body>
 </html>
