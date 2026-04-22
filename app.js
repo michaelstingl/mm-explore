@@ -58,6 +58,15 @@ function normalizeGistUrl(raw) {
   return raw;
 }
 
+// Register Service Worker (prod only — skip on localhost dev to avoid caching pain)
+if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[SW] registered:', reg.scope))
+      .catch(err => console.warn('[SW] registration failed:', err));
+  });
+}
+
 document.addEventListener('alpine:init', () => {
   Alpine.data('app', () => ({
     // State
