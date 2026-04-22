@@ -457,6 +457,81 @@ header h1 {
   color: white;
 }
 
+/* Place picker */
+.place-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+  margin-bottom: var(--size-3);
+  padding: var(--size-3);
+  background: white;
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2);
+}
+
+.place-picker select {
+  padding: var(--size-2);
+  font-size: var(--font-size-3);
+  font-weight: 600;
+  border: 1px solid var(--stone-3);
+  border-radius: var(--radius-2);
+  background: white;
+  font-family: inherit;
+  color: var(--color-text, #1A1A1A);
+}
+
+/* POI list */
+.poi-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.poi {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-3);
+  padding: var(--size-3) 0;
+  border-bottom: 1px solid var(--stone-2);
+}
+
+.poi:first-child { padding-top: 0; }
+.poi:last-child { border: none; padding-bottom: 0; }
+
+.poi-icon {
+  font-size: var(--font-size-4);
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.poi-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+}
+
+.poi-main strong {
+  font-size: var(--font-size-2);
+  font-weight: 600;
+}
+
+.poi-note {
+  font-size: var(--font-size-1);
+  margin: 0 !important;
+  line-height: 1.4;
+}
+
+.poi-link {
+  font-size: var(--font-size-4);
+  text-decoration: none;
+  color: var(--color-primary, #E8743B);
+  padding: var(--size-1) var(--size-2);
+  flex-shrink: 0;
+  align-self: center;
+}
+
 /* Cards */
 .card {
   background: white;

@@ -129,7 +129,124 @@
           <button :class="mode === 'explore' ? 'active' : ''" @click="setMode('explore')">Erleben 🏖️</button>
         </nav>
 
-        <!-- Reisen-Modus -->
+        <!-- Erleben-Modus -->
+        <template x-if="mode === 'explore'">
+          <div>
+            <template x-if="!bundle.places?.length">
+              <div class="card">
+                <p>Keine Orte im Bundle.</p>
+              </div>
+            </template>
+
+            <template x-if="bundle.places?.length">
+              <div>
+                <label class="place-picker">
+                  <span class="muted">Wo seid ihr gerade?</span>
+                  <select
+                    @change="selectPlace($event.target.value)"
+                    :value="selectedPlace?.id || ''">
+                    <template x-for="place in bundle.places" :key="place.id">
+                      <option :value="place.id" :selected="place.id === selectedPlace?.id" x-text="place.name"></option>
+                    </template>
+                  </select>
+                </label>
+
+                <template x-if="selectedPlace">
+                  <div>
+                    <!-- Stays at this place -->
+                    <template x-for="stay in staysAtPlace(selectedPlace.id)" :key="stay.id">
+                      <article class="card stay-card" x-data="{ showDetails: false }">
+                        <h3 x-text="stay.name"></h3>
+                        <p class="muted" x-text="stay.address"></p>
+                        <template x-if="stay.check_in">
+                          <p class="muted">
+                            <span>Check-in </span>
+                            <span x-text="formatCheckin(stay.check_in)"></span>
+                            <template x-if="stay.check_out">
+                              <span x-text="' · bis ' + formatCheckin(stay.check_out)"></span>
+                            </template>
+                          </p>
+                        </template>
+                        <template x-if="stay.note">
+                          <p class="muted stay-note" x-text="stay.note"></p>
+                        </template>
+                        <div class="stay-actions">
+                          <template x-if="stay.maps_url">
+                            <a :href="stay.maps_url" target="_blank" class="btn-primary">Route</a>
+                          </template>
+                          <template x-if="stay.phone">
+                            <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>
+                          </template>
+                          <button @click="showDetails = true" class="btn-secondary">Details</button>
+                        </div>
+
+                        <div x-show="showDetails" class="modal-backdrop" @click="showDetails = false" x-cloak>
+                          <div class="modal" @click.stop>
+                            <h3 x-text="stay.name"></h3>
+                            <dl>
+                              <div class="modal-row"><dt>Adresse</dt><dd x-text="stay.address"></dd></div>
+                              <template x-if="stay.phone">
+                                <div class="modal-row"><dt>Telefon</dt><dd x-text="stay.phone"></dd></div>
+                              </template>
+                              <template x-if="stay.check_in">
+                                <div class="modal-row"><dt>Check-in</dt><dd x-text="formatCheckin(stay.check_in)"></dd></div>
+                              </template>
+                              <template x-if="stay.check_out">
+                                <div class="modal-row"><dt>Check-out</dt><dd x-text="formatCheckin(stay.check_out)"></dd></div>
+                              </template>
+                              <template x-if="stay.booking?.provider">
+                                <div class="modal-row"><dt>Provider</dt><dd x-text="stay.booking.provider"></dd></div>
+                              </template>
+                              <template x-if="stay.booking?.id">
+                                <div class="modal-row"><dt>Buchung</dt><dd x-text="stay.booking.id"></dd></div>
+                              </template>
+                              <template x-if="stay.booking?.pin">
+                                <div class="modal-row"><dt>PIN</dt><dd class="pin" x-text="stay.booking.pin"></dd></div>
+                              </template>
+                            </dl>
+                            <button @click="showDetails = false" class="btn-primary">Schließen</button>
+                          </div>
+                        </div>
+                      </article>
+                    </template>
+
+                    <!-- POI list -->
+                    <template x-if="selectedPlace.pois?.length">
+                      <article class="card">
+                        <h3 x-text="'Orte in ' + selectedPlace.name"></h3>
+                        <ul class="poi-list">
+                          <template x-for="poi in selectedPlace.pois" :key="poi.name">
+                            <li class="poi">
+                              <div class="poi-icon" x-text="poiIcon(poi.type)"></div>
+                              <div class="poi-main">
+                                <strong x-text="poi.name"></strong>
+                                <template x-if="poi.note">
+                                  <p class="muted poi-note" x-text="poi.note"></p>
+                                </template>
+                              </div>
+                              <template x-if="poi.maps_url">
+                                <a :href="poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen">→</a>
+                              </template>
+                            </li>
+                          </template>
+                        </ul>
+                      </article>
+                    </template>
+
+                    <!-- Empty state for this place -->
+                    <template x-if="!selectedPlace.pois?.length && !staysAtPlace(selectedPlace.id).length">
+                      <div class="card">
+                        <p>Für <strong x-text="selectedPlace.name"></strong> ist noch nichts hinterlegt.</p>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Unterwegs-Modus -->
         <template x-if="mode === 'transit'">
           <div>
             <!-- Trip not yet started -->

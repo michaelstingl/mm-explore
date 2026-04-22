@@ -343,6 +343,37 @@ document.addEventListener('alpine:init', () => {
       return map[type] || '📍';
     },
 
+    // Place picker logic
+    get defaultPlace() {
+      const stay = this.todayDay ? this.findStay(this.todayDay.stay_id) : null;
+      if (stay?.place_id) {
+        const p = this.findPlace(stay.place_id);
+        if (p) return p;
+      }
+      const last = localStorage.getItem(STORAGE_KEY.LAST_PLACE);
+      if (last) {
+        const p = this.findPlace(last);
+        if (p) return p;
+      }
+      return this.bundle?.places?.[0] || null;
+    },
+
+    get selectedPlace() {
+      if (this.selectedPlaceId) {
+        return this.findPlace(this.selectedPlaceId) || this.defaultPlace;
+      }
+      return this.defaultPlace;
+    },
+
+    staysAtPlace(placeId) {
+      return (this.bundle?.stays || []).filter(s => s.place_id === placeId);
+    },
+
+    selectPlace(id) {
+      this.selectedPlaceId = id;
+      if (id) localStorage.setItem(STORAGE_KEY.LAST_PLACE, id);
+    },
+
     // Dev-helper: testen der App für einen spezifischen Tag
     // In Console: Alpine.$data(document.querySelector('main')).simulateDate('2026-04-24')
     simulateDate(iso) {
