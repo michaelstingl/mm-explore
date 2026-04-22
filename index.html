@@ -270,7 +270,7 @@
                                 </template>
                               </div>
                               <template x-if="poi.maps_url || poi.coords">
-                                <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen">→</a>
+                                <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen" @click="logMapsClick(poi, 'view')">→</a>
                               </template>
                             </li>
                           </template>
@@ -335,7 +335,7 @@
                     <p class="muted" x-text="drive.note"></p>
                   </template>
                   <template x-if="drive.maps_url || drive.coords">
-                    <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary">Route öffnen</a>
+                    <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')">Route öffnen</a>
                   </template>
 
                   <template x-if="drive.stops?.length">
@@ -352,7 +352,7 @@
                               </template>
                             </div>
                             <template x-if="stop.maps_url || stop.coords">
-                              <a :href="mapsUrl(stop, 'view') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps öffnen">→</a>
+                              <a :href="mapsUrl(stop, 'view') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps öffnen" @click="logMapsClick(stop, 'view')">→</a>
                             </template>
                           </li>
                         </template>
@@ -375,7 +375,7 @@
                     </template>
                     <div class="stay-actions">
                       <template x-if="stay.maps_url || stay.coords">
-                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary">Route</a>
+                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')">Route</a>
                       </template>
                       <template x-if="stay.phone">
                         <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>

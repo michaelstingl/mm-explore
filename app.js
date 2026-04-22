@@ -199,6 +199,21 @@ document.addEventListener('alpine:init', () => {
       return buildMapsUrl(location, this.mapsApp, mode);
     },
 
+    logMapsClick(location, mode) {
+      const appUsed = this.mapsApp === 'auto'
+        ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')
+        : this.mapsApp;
+      const url = buildMapsUrl(location, this.mapsApp, mode);
+      console.log('[maps]', {
+        setting: this.mapsApp,
+        resolved: appUsed,
+        mode,
+        location: { name: location?.name, coords: location?.coords, maps_url: location?.maps_url },
+        url,
+        userAgent: navigator.userAgent.includes('Mac') ? 'Mac' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'other'
+      });
+    },
+
     get firstDayOfWeek() {
       try {
         const info = new Intl.Locale(this.locale).getWeekInfo?.() ?? new Intl.Locale(this.locale).weekInfo;
