@@ -546,6 +546,66 @@ header h1 {
   font-style: italic;
 }
 
+.debug-log-actions {
+  display: flex;
+  gap: var(--size-1);
+  align-items: center;
+  margin-bottom: var(--size-2);
+}
+
+.debug-log {
+  max-height: 40vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: var(--radius-1);
+  padding: var(--size-1);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.log-entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--stone-1);
+}
+
+.log-entry:last-child { border: none; }
+
+.log-ts {
+  color: var(--stone-6);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.log-cat {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  min-width: 3.5em;
+  flex-shrink: 0;
+}
+
+.log-user .log-cat { color: var(--color-primary, #E8743B); }
+.log-net .log-cat { color: var(--blue-7, #1D4ED8); }
+.log-warn .log-cat { color: var(--orange-8, #C2410C); }
+.log-err .log-cat { color: var(--red-7, #B91C1C); }
+.log-init .log-cat { color: var(--stone-7); }
+.log-log .log-cat { color: var(--stone-6); }
+
+.log-msg { flex: 1; min-width: 0; word-break: break-word; }
+
+.log-data {
+  flex-basis: 100%;
+  color: var(--stone-7);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding-left: 4.5em;
+  word-break: break-all;
+}
+
 /* Banners */
 .banner-offline {
   background: var(--yellow-3);

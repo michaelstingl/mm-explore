@@ -130,8 +130,34 @@ function normalizeGistUrl(raw) {
 
 // Debug logging — toggle via:  mmDebug(true) / mmDebug(false)   in Safari console
 const DEBUG_KEY = 'mm_debug';
+const LOG_KEY = 'mm_debug_log';
+const LOG_MAX = 200;
+
 function isDebug() { return localStorage.getItem(DEBUG_KEY) === '1'; }
-function dbg(...args) { if (isDebug()) console.log('[mm]', ...args); }
+
+// Ring buffer log — persisted to localStorage, survives reloads
+function pushLog(category, message, data) {
+  if (!isDebug()) return;
+  try {
+    const log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    log.push({
+      ts: new Date().toISOString(),
+      cat: category, // 'init' | 'user' | 'net' | 'warn' | 'err'
+      msg: message,
+      data: data === undefined ? null : data
+    });
+    if (log.length > LOG_MAX) log.splice(0, log.length - LOG_MAX);
+    localStorage.setItem(LOG_KEY, JSON.stringify(log));
+  } catch (e) { console.warn('[mm] log write failed', e); }
+}
+
+function dbg(...args) {
+  if (!isDebug()) return;
+  console.log('[mm]', ...args);
+  // Also persist a short summary
+  const [first, ...rest] = args;
+  pushLog('log', String(first), rest.length ? rest : undefined);
+}
 window.mmDebug = (on) => {
   if (on === undefined) {
     console.log('debug:', isDebug() ? 'ON' : 'OFF');
@@ -194,6 +220,12 @@ document.addEventListener('alpine:init', () => {
 
     // Lifecycle
     async init() {
+      pushLog('init', 'app init', {
+        ua: navigator.userAgent.substring(0, 60),
+        standalone: window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches,
+        locale: navigator.language,
+        url: location.href
+      });
       dbg('init · debug is ON (mmDebug(false) to silence)');
       this.parseFragment();
       this.parseDateQuery();
@@ -235,6 +267,7 @@ document.addEventListener('alpine:init', () => {
         const latest = await res.json();
         if (latest.version && latest.version !== this.build.version) {
           dbg('update available:', this.build.version, '→', latest.version);
+          pushLog('net', 'update available', { from: this.build.version, to: latest.version });
           this.updateAvailable = true;
         }
       } catch (e) { dbg('update check failed', e.message); }
@@ -283,6 +316,30 @@ document.addEventListener('alpine:init', () => {
       const text = JSON.stringify(this.debugSnapshot, null, 2);
       try { await navigator.clipboard.writeText(text); this.showToast('Debug-State kopiert'); }
       catch { prompt('Debug-State:', text); }
+    },
+
+    get debugLog() {
+      try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]').slice().reverse(); }
+      catch { return []; }
+    },
+
+    clearDebugLog() {
+      localStorage.removeItem(LOG_KEY);
+      pushLog('init', 'log cleared');
+      this.showToast('Log gelöscht');
+    },
+
+    async copyDebugLog() {
+      const entries = this.debugLog.slice().reverse(); // chronological
+      const text = entries.map(e =>
+        `${e.ts.slice(11, 19)}  ${e.cat.padEnd(5)} ${e.msg}${e.data ? ' ' + JSON.stringify(e.data) : ''}`
+      ).join('\n');
+      try { await navigator.clipboard.writeText(text); this.showToast('Log kopiert'); }
+      catch { prompt('Log:', text); }
+    },
+
+    logTs(iso) {
+      return new Date(iso).toLocaleTimeString(this.locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     },
 
     get bundleAgeLabel() {
@@ -340,6 +397,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async copyLocation(location) {
+      pushLog('user', 'copy location', { name: location?.name || location?.to });
       const parts = [];
       if (location?.name) parts.push(location.name);
       else if (location?.to) parts.push(location.to);
@@ -363,11 +421,15 @@ document.addEventListener('alpine:init', () => {
     },
 
     logMapsClick(location, mode) {
-      if (!isDebug()) return;
       const appUsed = this.mapsApp === 'auto'
         ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')
         : this.mapsApp;
       const url = buildMapsUrl(location, this.mapsApp, mode);
+      pushLog('user', `maps → ${appUsed} (${mode})`, {
+        name: location?.name || location?.to,
+        coords: location?.coords
+      });
+      if (!isDebug()) return;
       console.log('[mm maps]', {
         setting: this.mapsApp,
         resolved: appUsed,
@@ -427,6 +489,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async shareTrip() {
+      pushLog('user', 'share trip');
       const gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL);
       if (!gistUrl) {
         alert('Keine Gist-URL konfiguriert.');
@@ -560,6 +623,7 @@ document.addEventListener('alpine:init', () => {
       if (!iso) return;
       const realToday = new Date().toISOString().slice(0, 10);
       this._simulatedDate = iso === realToday ? null : iso;
+      pushLog('user', `date → ${iso}`, { simulating: this._simulatedDate !== null });
       this._syncDateQuery();
       this.pickDefaultMode();
     },
@@ -627,6 +691,7 @@ document.addEventListener('alpine:init', () => {
         const data = await res.json();
         const ms = (performance.now() - t0).toFixed(0);
         dbg(`fetchBundle: ok in ${ms}ms —`, data.trip?.title, `(${data.days?.length} days)`);
+        pushLog('net', `fetch bundle ok ${ms}ms`, { trip: data.trip?.title, days: data.days?.length });
         this.bundle = data;
         localStorage.setItem(STORAGE_KEY.BUNDLE, JSON.stringify(data));
         const ts = new Date().toISOString();
@@ -635,6 +700,7 @@ document.addEventListener('alpine:init', () => {
         this.offline = false;
       } catch (e) {
         console.warn('[mm] fetch failed, using cache', e);
+        pushLog('warn', 'fetch failed', { error: e.message });
         this.offline = true;
         if (!this.bundle) this.error = 'offline-no-cache';
       } finally {
@@ -666,6 +732,7 @@ document.addEventListener('alpine:init', () => {
 
     setMode(m) {
       dbg('mode →', m);
+      pushLog('user', `mode → ${m}`);
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
@@ -770,6 +837,7 @@ document.addEventListener('alpine:init', () => {
     selectPlace(id) {
       this.selectedPlaceId = id;
       if (id) localStorage.setItem(STORAGE_KEY.LAST_PLACE, id);
+      pushLog('user', `place → ${id}`);
     },
 
     // Dev-helper: testen der App für einen spezifischen Tag

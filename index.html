@@ -220,6 +220,27 @@
                   <div>Age: <code x-text="bundleAgeLabel"></code></div>
                 </div>
               </div>
+
+              <div class="debug-row">
+                <strong>Log</strong>
+                <div>
+                  <div class="debug-log-actions">
+                    <span class="muted" x-text="debugLog.length + ' events'"></span>
+                    <button @click="copyDebugLog()" class="btn-copy">📋</button>
+                    <button @click="clearDebugLog()" class="btn-copy">✕</button>
+                  </div>
+                  <div class="debug-log">
+                    <template x-for="entry in debugLog" :key="entry.ts">
+                      <div class="log-entry" :class="'log-' + entry.cat">
+                        <span class="log-ts" x-text="logTs(entry.ts)"></span>
+                        <span class="log-cat" x-text="entry.cat"></span>
+                        <span class="log-msg" x-text="entry.msg"></span>
+                        <span x-show="entry.data" class="log-data" x-text="JSON.stringify(entry.data)"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </template>
