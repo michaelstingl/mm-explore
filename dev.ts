@@ -1,27 +1,30 @@
-// Simple dev server with live-reload for mm-explore
-// Run: bun dev.ts
+// Dev server with WebSocket-based live-reload
+// Run: bun --hot dev.ts
 // Open: http://localhost:8000
 
 import { watch } from "node:fs";
+import type { ServerWebSocket } from "bun";
 
 const PORT = 8000;
 const ROOT = import.meta.dir;
-const clients = new Set<(msg: string) => void>();
+const sockets = new Set<ServerWebSocket<unknown>>();
 
-// Watch files, notify all connected SSE clients on any change
 const debounced = (() => {
   let t: ReturnType<typeof setTimeout> | null = null;
   return () => {
     if (t) clearTimeout(t);
     t = setTimeout(() => {
-      clients.forEach(send => send("reload"));
+      sockets.forEach(ws => {
+        try { ws.send("reload"); } catch {}
+      });
     }, 80);
   };
 })();
 
-const watcher = watch(ROOT, { recursive: true }, (_event, filename) => {
+watch(ROOT, { recursive: true }, (_event, filename) => {
   if (!filename) return;
   if (filename.startsWith(".git") || filename.startsWith("node_modules") || filename.startsWith("local")) return;
+  if (filename === "dev.ts") return; // don't trigger on dev-server edits
   if (filename.endsWith("~") || filename.endsWith(".swp")) return;
   console.log(`[watch] ${filename} changed`);
   debounced();
@@ -30,11 +33,16 @@ const watcher = watch(ROOT, { recursive: true }, (_event, filename) => {
 const INJECT = `
 <script>
 (() => {
-  let es;
+  let ws;
   const connect = () => {
-    es = new EventSource('/__reload');
-    es.onmessage = (e) => { if (e.data === 'reload') location.reload(); };
-    es.onerror = () => { es.close(); setTimeout(connect, 1000); };
+    try {
+      ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/__reload');
+      ws.onmessage = (e) => { if (e.data === 'reload') location.reload(); };
+      ws.onclose = () => setTimeout(connect, 1000);
+      ws.onerror = () => { try { ws.close(); } catch {} };
+    } catch {
+      setTimeout(connect, 1000);
+    }
   };
   connect();
 })();
@@ -43,48 +51,19 @@ const INJECT = `
 
 const server = Bun.serve({
   port: PORT,
-  async fetch(req) {
+  async fetch(req, server) {
     const url = new URL(req.url);
 
-    // SSE endpoint for reload notifications
     if (url.pathname === "/__reload") {
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          const sendRaw = (chunk: string) => {
-            try {
-              controller.enqueue(encoder.encode(chunk));
-            } catch {}
-          };
-          const send = (msg: string) => sendRaw(`data: ${msg}\n\n`);
-          clients.add(send);
-          send("hello");
-          // Keep-alive ping every 15s (SSE comment, ignored by client)
-          const keepalive = setInterval(() => sendRaw(`: ping\n\n`), 15_000);
-          req.signal.addEventListener("abort", () => {
-            clearInterval(keepalive);
-            clients.delete(send);
-            try { controller.close(); } catch {}
-          });
-        },
-      });
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          "Connection": "keep-alive",
-          "X-Accel-Buffering": "no",
-        },
-      });
+      if (server.upgrade(req)) return;
+      return new Response("upgrade failed", { status: 500 });
     }
 
-    // Static file serving
     let path = url.pathname;
     if (path === "/" || path.endsWith("/")) path += "index.html";
     const file = Bun.file(ROOT + path);
     if (!(await file.exists())) return new Response("Not Found", { status: 404 });
 
-    // Inject live-reload snippet into HTML
     if (path.endsWith(".html")) {
       const text = await file.text();
       const body = text.includes("</body>")
@@ -97,14 +76,22 @@ const server = Bun.serve({
 
     return new Response(file);
   },
+  websocket: {
+    open(ws) {
+      sockets.add(ws);
+    },
+    close(ws) {
+      sockets.delete(ws);
+    },
+    message() { /* ignore client messages */ },
+  },
 });
 
-console.log(`[dev] serving ${ROOT}`);
+console.log(`[dev] ${ROOT}`);
 console.log(`[dev] http://localhost:${server.port}`);
-console.log(`[dev] live-reload active`);
+console.log(`[dev] live-reload via websocket`);
 
 process.on("SIGINT", () => {
-  watcher.close();
   server.stop();
   process.exit(0);
 });
