@@ -4,8 +4,57 @@ const STORAGE_KEY = {
   BUNDLE_TIMESTAMP: 'mm_bundle_timestamp',
   MODE_OVERRIDE: 'mm_mode_override',
   LAST_PLACE: 'mm_last_place',
-  LOCALE_OVERRIDE: 'mm_locale_override'
+  LOCALE_OVERRIDE: 'mm_locale_override',
+  MAPS_APP: 'mm_maps_app'
 };
+
+const MAPS_APPS = [
+  { value: 'auto', label: 'Auto (System-Default)' },
+  { value: 'apple', label: 'Apple Maps' },
+  { value: 'google', label: 'Google Maps' },
+  { value: 'waze', label: 'Waze' }
+];
+
+/**
+ * Build a navigation URL for the given location.
+ * location: { coords?: [lat, lon], name?: string, address?: string, maps_url?: string }
+ * app: 'apple' | 'google' | 'waze' | 'auto'
+ * mode: 'view' (show pin) | 'nav' (start navigation to)
+ */
+function buildMapsUrl(location, app = 'auto', mode = 'view') {
+  if (!location) return null;
+  const resolved = app === 'auto'
+    ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')
+    : app;
+
+  const [lat, lon] = location.coords || [];
+  const hasCoords = typeof lat === 'number' && typeof lon === 'number';
+  const query = location.name
+    ? (location.address ? `${location.name}, ${location.address}` : location.name)
+    : location.address;
+
+  switch (resolved) {
+    case 'apple': {
+      if (mode === 'nav' && hasCoords) return `https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`;
+      if (hasCoords) return `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(location.name || '')}`;
+      if (query) return `https://maps.apple.com/?q=${encodeURIComponent(query)}`;
+      return location.maps_url || null;
+    }
+    case 'google': {
+      if (mode === 'nav' && hasCoords) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+      if (hasCoords) return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+      if (query) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+      return location.maps_url || null;
+    }
+    case 'waze': {
+      // Waze only makes sense for navigation
+      if (hasCoords) return `https://waze.com/ul?ll=${lat},${lon}&navigate=yes`;
+      if (query) return `https://waze.com/ul?q=${encodeURIComponent(query)}&navigate=yes`;
+      return null;
+    }
+  }
+  return location.maps_url || null;
+}
 
 const LOCALE_OPTIONS = [
   { value: 'auto', label: 'Auto' },
@@ -83,6 +132,8 @@ document.addEventListener('alpine:init', () => {
     showDayPicker: false,
     localeOverride: '',
     localeOptions: LOCALE_OPTIONS,
+    mapsApp: 'auto',
+    mapsApps: MAPS_APPS,
 
     // Computed
     _simulatedDate: null,
@@ -112,6 +163,8 @@ document.addEventListener('alpine:init', () => {
       if (storedLocale && this.localeOverride === 'auto') {
         localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
       }
+      const storedMaps = localStorage.getItem(STORAGE_KEY.MAPS_APP);
+      this.mapsApp = MAPS_APPS.some(a => a.value === storedMaps) ? storedMaps : 'auto';
       this.loadCachedBundle();
       await this.fetchBundle();
       this.applyTheme();
@@ -133,6 +186,17 @@ document.addEventListener('alpine:init', () => {
       } else {
         localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
       }
+    },
+
+    setMapsApp(value) {
+      const safe = MAPS_APPS.some(a => a.value === value) ? value : 'auto';
+      this.mapsApp = safe;
+      if (safe === 'auto') localStorage.removeItem(STORAGE_KEY.MAPS_APP);
+      else localStorage.setItem(STORAGE_KEY.MAPS_APP, safe);
+    },
+
+    mapsUrl(location, mode = 'view') {
+      return buildMapsUrl(location, this.mapsApp, mode);
     },
 
     get firstDayOfWeek() {
