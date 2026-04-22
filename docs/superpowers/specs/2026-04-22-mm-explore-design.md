@@ -64,7 +64,13 @@ Normalisierte Struktur mit IDs. Keys englisch (stabil), UI-Strings deutsch (via 
     "to_date": "2026-05-17",
     "travelers": ["Michael", "Martina"],
     "vehicle": { "name": "VW ID.7 Tourer Pro", "plate": "ER-MM25E" },
-    "last_updated": "2026-04-22T14:00:00Z"
+    "last_updated": "2026-04-22T14:00:00Z",
+    "theme": {
+      "primary": "#E8743B",
+      "accent": "#2E5266",
+      "background": "#FAF4E8",
+      "text": "#1A1A1A"
+    }
   },
   "days": [
     {
@@ -179,6 +185,7 @@ Default wenn heute ein `type: "stay"`-Tag ist.
 
 - Gist-URL (Input + "laden"-Button)
 - "Jetzt neu laden" (fetch + Cache-Update)
+- **"Trip teilen 📤"** (generiert Onboarding-URL mit Fragment, öffnet iOS Share Sheet via `navigator.share()`, Fallback: Clipboard-Copy)
 - Letzte Aktualisierung (Timestamp)
 - Trip-Info (schema_version, last_updated, traveler_names)
 - "Reset" (löscht localStorage)
@@ -189,6 +196,36 @@ Default wenn heute ein `type: "stay"`-Tag ist.
 - Alles auf einer Page, Toggle wechselt Inhalt
 - Details sind Modals (Overlay, kein State-Change in URL)
 - Safari-freundlich (keine Back-Button-Verwirrung)
+
+## Theming
+
+Theme lebt im Bundle — **jede Reise bringt ihre eigene Stimmung mit**, ohne Code-Änderung.
+
+**Schema (v1 basic):** Vier Farben in `trip.theme`:
+- `primary` — dominante Farbe (Buttons, Header, Active-States)
+- `accent` — Sekundärfarbe für Akzente
+- `background` — Haupt-Hintergrund
+- `text` — Haupt-Textfarbe
+
+**Render:** PWA liest `trip.theme` beim Laden, schreibt 4 CSS Custom Properties auf `:root`:
+```css
+:root {
+  --color-primary: #E8743B;
+  --color-accent: #2E5266;
+  --color-bg: #FAF4E8;
+  --color-text: #1A1A1A;
+}
+```
+
+**Fallback:** Wenn `theme` im Bundle fehlt → neutrale Default-Farben aus Open Props (z.B. `--stone-9` / `--pink-6` o.ä.).
+
+**Italien 2026 Default** (wird in Implementation mit `frontend-design` verfeinert):
+- Primary: Terracotta (warm, italienisch)
+- Accent: Adriatik-Blau
+- Background: Warm Off-White
+- Text: Fast-Schwarz
+
+**Nicht v1, aber Hook offen für v2:** `theme.font_display`, `theme.font_body`, `theme.vibe` (named preset wie `"mediterranean"`).
 
 ## Tech-Stack
 
@@ -223,13 +260,15 @@ Bewusst minimal, no-build, no-npm:
 ```
 App-Öffnen:
   1. Safari lädt index.html (via Service Worker Cache, offline OK)
-  2. JS liest gist_url aus localStorage
+  2. JS prüft window.location.hash auf `#gist=<encoded-url>`
+     - Vorhanden? → decode, localStorage['gist_url'] setzen, Fragment aus URL entfernen
+  3. JS liest gist_url aus localStorage
      - Keine URL? → Settings-View, Input-Feld
-  3. fetch(gist_url)
+  4. fetch(gist_url)
      ├─ Erfolg → JSON parsen → in localStorage cachen → rendern
      └─ Fehler → letzte JSON-Kopie aus localStorage → "offline"-Banner
-  4. Default-Modus (date → travel day? → Reisen : Erleben)
-  5. View rendern
+  5. Default-Modus (date → travel day? → Reisen : Erleben)
+  6. View rendern
 
 Manueller Refresh (in Settings):
   1. Button-Click → fetch(gist_url)
@@ -267,6 +306,9 @@ Modus-Toggle:
 - ✅ Error-States (offline, malformed, out-of-range)
 - ✅ Manuell befülltes Gist (Claude erstellt travel.json aus Drive-Daten)
 - ✅ iOS-Install-Banner bei erstem Launch (da kein Auto-Prompt)
+- ✅ URL-Fragment-Onboarding (`#gist=...`) für zero-typing Setup auf Martinas iPhone
+- ✅ Share-Trip-Button (generiert Onboarding-URL via `navigator.share()`)
+- ✅ Theming aus Bundle (4 Farben, CSS-Variablen, Fallback wenn nicht gesetzt)
 
 ### Out of Scope (Phase 2+)
 
@@ -331,8 +373,39 @@ Inputs für diese Diskussion:
 
 **Platzhalter in Sektion 6 des Spec; vor dem Bauen klären.**
 
+## Onboarding via URL-Fragment
+
+Martina muss keine URL abtippen — der Gist-URL reist huckepack im App-Link.
+
+**Michael baut einmal einen Onboarding-Link:**
+
+```
+https://michaelstingl.github.io/mm-explore/#gist=<url-encoded-gist-raw-url>
+```
+
+Beispiel:
+```
+https://michaelstingl.github.io/mm-explore/#gist=https%3A%2F%2Fgist.githubusercontent.com%2Fmichaelstingl%2Fabc123%2Fraw%2Ftravel.json
+```
+
+**Flow:**
+1. Michael schickt den Link per iMessage an Martina
+2. Sie tapt → Safari öffnet die PWA
+3. JS liest `window.location.hash`, extrahiert `gist=`-Parameter (URL-decoded)
+4. Schreibt in `localStorage['gist_url']`
+5. Entfernt das Fragment aus der URL (History-replaceState, saubere Adresszeile)
+6. Fetcht JSON, rendert
+7. Martina tippt Share-Button → "Zum Home-Bildschirm"
+8. Ab jetzt öffnet sie die App direkt vom Home-Screen, Gist-URL schon in localStorage
+
+**Edge Cases:**
+- Fragment vorhanden UND localStorage hat schon URL → **Fragment gewinnt** (erlaubt „Trip wechseln" per neuem Link)
+- Fragment-URL malformed → Error-Screen mit manuellem Input als Fallback
+- Direkt-Aufruf der PWA-URL ohne Fragment und ohne gespeicherte URL → Settings-View mit Input-Feld (Fallback)
+
+**Vorteil:** Martina braucht null technisches Verständnis. Tappen reicht.
+
 ## Offene Entscheidungen
 
-- [ ] Wie kommt die Gist-URL initial auf Martinas iPhone? (Vorschlag: iMessage-Link mit Fragment, z.B. `https://michaelstingl.github.io/mm-explore/#gist=https://gist.githubusercontent.com/...`)
-- [ ] Ästhetik-Richtung (siehe oben)
-- [ ] Sollen wir die privaten Koordinaten / Adressen der Gastgeber (Airbnb) im öffentlichen Repo-Beispielcode hartcodiert haben? (Antwort: nein, Beispiel-JSON im Repo ist fiktiv)
+- [ ] Ästhetik-Richtung — wird vor dem Bau via `frontend-design` Skill festgelegt
+- [ ] Icon-Design (192/512 px) — wird mit `frontend-design` / `canvas-design` erstellt
