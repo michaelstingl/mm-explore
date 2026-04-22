@@ -23,6 +23,41 @@ function isValidLocale(tag) {
   try { new Intl.Locale(tag); return true; } catch { return false; }
 }
 
+/**
+ * Normalize a GitHub Gist URL to the latest-tracking raw URL.
+ * Handles:
+ *  - https://gist.github.com/user/ID                          → raw of first file, latest
+ *  - https://gist.github.com/user/ID#file-foo-json            → raw of foo.json, latest
+ *  - https://gist.githubusercontent.com/user/ID/raw/SHA/file  → strip SHA to track latest
+ *  - https://gist.githubusercontent.com/user/ID/raw/file      → passthrough (already latest)
+ */
+function normalizeGistUrl(raw) {
+  try {
+    const url = new URL(raw);
+    if (url.hostname === 'gist.github.com') {
+      const [, user, id] = url.pathname.match(/^\/([^/]+)\/([a-f0-9]+)/) || [];
+      if (!user || !id) return raw;
+      let file = '';
+      const m = url.hash.match(/^#file-(.+)$/);
+      if (m) {
+        // #file-travel-bundle-v1-json → travel-bundle-v1.json
+        file = m[1].replace(/-([^-]+)$/, '.$1');
+      }
+      return `https://gist.githubusercontent.com/${user}/${id}/raw${file ? '/' + file : ''}`;
+    }
+    if (url.hostname === 'gist.githubusercontent.com') {
+      // Strip revision SHA from /user/id/raw/SHA/filename
+      const parts = url.pathname.split('/').filter(Boolean);
+      // parts: [user, id, 'raw', (SHA), (filename?)]
+      if (parts[2] === 'raw' && parts[3] && /^[a-f0-9]{7,}$/.test(parts[3])) {
+        const tail = parts.slice(4).join('/');
+        return `https://gist.githubusercontent.com/${parts[0]}/${parts[1]}/raw${tail ? '/' + tail : ''}`;
+      }
+    }
+  } catch { /* fall through */ }
+  return raw;
+}
+
 document.addEventListener('alpine:init', () => {
   Alpine.data('app', () => ({
     // State
@@ -321,7 +356,9 @@ document.addEventListener('alpine:init', () => {
 
     saveGistUrl() {
       if (!this.gistUrl.trim()) return;
-      localStorage.setItem(STORAGE_KEY.GIST_URL, this.gistUrl.trim());
+      const normalized = normalizeGistUrl(this.gistUrl.trim());
+      this.gistUrl = normalized;
+      localStorage.setItem(STORAGE_KEY.GIST_URL, normalized);
       this.view = 'main';
       this.loading = true;
       this.fetchBundle().then(() => {
