@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="M+M Explore">
+  <title>M+M Explore</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/open-props/open-props.min.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <main x-data="app" x-cloak>
+    <header>
+      <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
+      <button @click="view = 'settings'" aria-label="Einstellungen">⚙</button>
+    </header>
+    <p>Hello world — scaffold läuft.</p>
+  </main>
+</body>
+</html>
