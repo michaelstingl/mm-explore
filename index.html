@@ -11,8 +11,8 @@
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="https://unpkg.com/open-props/open-props.min.css">
   <link rel="stylesheet" href="./styles.css">
+  <script defer src="./app.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script type="module" src="./app.js"></script>
 </head>
 <body>
   <main x-data="app" x-cloak>
@@ -63,17 +63,145 @@
         <p x-show="offline" class="banner-offline">Offline — Daten vom letzten Laden</p>
 
         <nav class="mode-toggle">
-          <button :class="mode === 'reisen' ? 'active' : ''" @click="setMode('reisen')">Reisen 🚗</button>
+          <button :class="mode === 'reisen' ? 'active' : ''" @click="setMode('reisen')">Unterwegs 🚗</button>
           <button :class="mode === 'erleben' ? 'active' : ''" @click="setMode('erleben')">Erleben 🏖️</button>
         </nav>
 
-        <!-- Placeholder bis Phase 2/3 -->
-        <div class="card">
-          <p>Modus: <strong x-text="mode"></strong></p>
-          <p>Heute: <span x-text="today"></span></p>
-          <p>Trip-Status: <span x-text="tripState"></span></p>
-          <p x-show="todayDay">Tag heute: <span x-text="todayDay?.title"></span></p>
-        </div>
+        <!-- Reisen-Modus -->
+        <template x-if="mode === 'reisen'">
+          <div>
+            <!-- Trip not yet started -->
+            <template x-if="tripState === 'before'">
+              <div class="card">
+                <h2>Noch nicht losgefahren</h2>
+                <p>Die Reise beginnt am <strong x-text="bundle.trip.from_date"></strong>.</p>
+              </div>
+            </template>
+
+            <!-- Trip finished -->
+            <template x-if="tripState === 'after'">
+              <div class="card">
+                <h2>Reise vorbei</h2>
+                <p>Hoffe es war schön 💛</p>
+              </div>
+            </template>
+
+            <!-- During trip: travel day -->
+            <template x-if="tripState === 'during' && todayDay?.drive_id">
+              <div x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, showDetails: false }">
+                <!-- Drive card -->
+                <article class="card drive-card">
+                  <h2 x-text="drive.from + ' → ' + drive.to"></h2>
+                  <p class="drive-meta">
+                    <template x-if="drive.km"><span x-text="drive.km + ' km'"></span></template>
+                    <template x-if="drive.km && drive.duration_min"><span>·</span></template>
+                    <template x-if="drive.duration_min"><span x-text="'~' + formatDuration(drive.duration_min) + ' h'"></span></template>
+                  </p>
+                  <template x-if="drive.route">
+                    <p class="route" x-text="drive.route"></p>
+                  </template>
+                  <template x-if="drive.note">
+                    <p class="muted" x-text="drive.note"></p>
+                  </template>
+                  <template x-if="drive.maps_url">
+                    <a :href="drive.maps_url" target="_blank" class="btn-primary">In Maps öffnen</a>
+                  </template>
+
+                  <template x-if="drive.stops?.length">
+                    <div class="stops">
+                      <h3>Ladestopps</h3>
+                      <ul>
+                        <template x-for="stop in drive.stops" :key="stop.name">
+                          <li class="stop">
+                            <div class="stop-main">
+                              <strong x-text="stop.name"></strong>
+                              <span class="muted">
+                                <template x-if="stop.km_ab_start"><span x-text="'km ' + stop.km_ab_start"></span></template>
+                                <template x-if="stop.kw"> · <span x-text="stop.kw + ' kW'"></span></template>
+                                <template x-if="stop.stop_min"> · <span x-text="stop.stop_min + ' min'"></span></template>
+                              </span>
+                              <template x-if="stop.note">
+                                <span class="muted stop-note" x-text="stop.note"></span>
+                              </template>
+                            </div>
+                            <template x-if="stop.maps_url">
+                              <a :href="stop.maps_url" target="_blank" class="stop-link">→</a>
+                            </template>
+                          </li>
+                        </template>
+                      </ul>
+                    </div>
+                  </template>
+                </article>
+
+                <!-- Stay card -->
+                <template x-if="stay">
+                  <article class="card stay-card">
+                    <h2>Heute Abend</h2>
+                    <p class="stay-name" x-text="stay.name"></p>
+                    <p class="muted" x-text="stay.address"></p>
+                    <template x-if="stay.check_in">
+                      <p>Check-in ab <span x-text="formatCheckin(stay.check_in)"></span></p>
+                    </template>
+                    <template x-if="stay.note">
+                      <p class="muted stay-note" x-text="stay.note"></p>
+                    </template>
+                    <div class="stay-actions">
+                      <template x-if="stay.maps_url">
+                        <a :href="stay.maps_url" target="_blank" class="btn-primary">Route</a>
+                      </template>
+                      <template x-if="stay.phone">
+                        <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>
+                      </template>
+                      <button @click="showDetails = true" class="btn-secondary">Details</button>
+                    </div>
+
+                    <!-- Detail-Modal -->
+                    <div x-show="showDetails" class="modal-backdrop" @click="showDetails = false" x-cloak>
+                      <div class="modal" @click.stop>
+                        <h3 x-text="stay.name"></h3>
+                        <dl>
+                          <dt>Adresse</dt>
+                          <dd x-text="stay.address"></dd>
+                          <template x-if="stay.phone">
+                            <div class="modal-row"><dt>Telefon</dt><dd x-text="stay.phone"></dd></div>
+                          </template>
+                          <template x-if="stay.check_in">
+                            <div class="modal-row"><dt>Check-in</dt><dd x-text="formatCheckin(stay.check_in)"></dd></div>
+                          </template>
+                          <template x-if="stay.check_out">
+                            <div class="modal-row"><dt>Check-out</dt><dd x-text="formatCheckin(stay.check_out)"></dd></div>
+                          </template>
+                          <template x-if="stay.booking?.provider">
+                            <div class="modal-row"><dt>Provider</dt><dd x-text="stay.booking.provider"></dd></div>
+                          </template>
+                          <template x-if="stay.booking?.id">
+                            <div class="modal-row"><dt>Buchung</dt><dd x-text="stay.booking.id"></dd></div>
+                          </template>
+                          <template x-if="stay.booking?.pin">
+                            <div class="modal-row"><dt>PIN</dt><dd class="pin" x-text="stay.booking.pin"></dd></div>
+                          </template>
+                        </dl>
+                        <button @click="showDetails = false" class="btn-primary">Schließen</button>
+                      </div>
+                    </div>
+                  </article>
+                </template>
+              </div>
+            </template>
+
+            <!-- During trip, NO drive today -->
+            <template x-if="tripState === 'during' && !todayDay?.drive_id">
+              <div class="card">
+                <p>Heute kein Reisetag.</p>
+                <template x-if="todayDay">
+                  <p class="muted" x-text="todayDay.title"></p>
+                </template>
+                <button @click="setMode('erleben')" class="btn-primary">Zu „Erleben" wechseln</button>
+              </div>
+            </template>
+          </div>
+        </template>
       </section>
     </template>
   </main>

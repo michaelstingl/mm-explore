@@ -21,7 +21,9 @@ document.addEventListener('alpine:init', () => {
     lastUpdated: null,
 
     // Computed
+    _simulatedDate: null,
     get today() {
+      if (this._simulatedDate) return this._simulatedDate;
       return new Date().toISOString().slice(0, 10);
     },
     get todayDay() {
@@ -143,6 +145,58 @@ document.addEventListener('alpine:init', () => {
       if (!confirm('Wirklich alle Daten löschen?')) return;
       Object.values(STORAGE_KEY).forEach(k => localStorage.removeItem(k));
       location.reload();
+    },
+
+    // Lookups
+    findDrive(driveId) {
+      return this.bundle?.drives?.find(d => d.id === driveId) || null;
+    },
+
+    findStay(stayId) {
+      return this.bundle?.stays?.find(s => s.id === stayId) || null;
+    },
+
+    findPlace(placeId) {
+      return this.bundle?.places?.find(p => p.id === placeId) || null;
+    },
+
+    // Formatters
+    formatDuration(minutes) {
+      if (minutes == null) return '?';
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}:${m.toString().padStart(2, '0')}`;
+    },
+
+    formatCheckin(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleString('de-DE', {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
+
+    poiIcon(type) {
+      const map = {
+        sight: '🏛️',
+        food: '🍽️',
+        beach: '🏖️',
+        charge: '⚡',
+        other: '📍'
+      };
+      return map[type] || '📍';
+    },
+
+    // Dev-helper: testen der App für einen spezifischen Tag
+    // In Console: Alpine.$data(document.querySelector('main')).simulateDate('2026-04-24')
+    simulateDate(iso) {
+      this._simulatedDate = iso;
+      console.log('Simulating date:', iso);
+      this.pickDefaultMode();
     }
   }));
 });
