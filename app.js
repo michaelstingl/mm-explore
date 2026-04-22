@@ -103,8 +103,8 @@ document.addEventListener('alpine:init', () => {
         const firstDow = (firstOfMonth.getDay() + 6) % 7; // Mon=0, Sun=6
         const daysInMonth = new Date(y, m + 1, 0).getDate();
 
-        const cells = [];
-        for (let i = 0; i < firstDow; i++) cells.push(null);
+        const allCells = [];
+        for (let i = 0; i < firstDow; i++) allCells.push(null);
         for (let d = 1; d <= daysInMonth; d++) {
           const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
           const inTrip = iso >= from && iso <= to;
@@ -112,7 +112,21 @@ document.addEventListener('alpine:init', () => {
           const symbols = [];
           if (day?.type === 'travel') symbols.push('🚗');
           if (day?.type === 'stay') symbols.push('🏖️');
-          cells.push({ date: iso, dom: d, inTrip, day, symbols });
+          allCells.push({ date: iso, dom: d, inTrip, day, symbols });
+        }
+        // pad to full weeks
+        while (allCells.length % 7 !== 0) allCells.push(null);
+
+        // keep only weeks that contain at least one in-trip cell
+        const cells = [];
+        for (let w = 0; w < allCells.length; w += 7) {
+          const week = allCells.slice(w, w + 7);
+          if (week.some(c => c && c.inTrip)) cells.push(...week);
+        }
+
+        if (cells.length === 0) {
+          cursor = new Date(y, m + 1, 1);
+          continue;
         }
 
         months.push({
