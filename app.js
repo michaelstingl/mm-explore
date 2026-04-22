@@ -86,6 +86,46 @@ document.addEventListener('alpine:init', () => {
       return new Date(iso).toLocaleDateString('de-DE', { month: 'short' });
     },
 
+    get calendarMonths() {
+      if (!this.bundle?.trip) return [];
+      const from = this.bundle.trip.from_date;
+      const to = this.bundle.trip.to_date;
+      const daysByDate = Object.fromEntries((this.bundle.days || []).map(d => [d.date, d]));
+
+      const months = [];
+      let cursor = new Date(from.slice(0, 7) + '-01');
+      const end = new Date(to.slice(0, 7) + '-01');
+
+      while (cursor <= end) {
+        const y = cursor.getFullYear();
+        const m = cursor.getMonth();
+        const firstOfMonth = new Date(y, m, 1);
+        const firstDow = (firstOfMonth.getDay() + 6) % 7; // Mon=0, Sun=6
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+        const cells = [];
+        for (let i = 0; i < firstDow; i++) cells.push(null);
+        for (let d = 1; d <= daysInMonth; d++) {
+          const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const inTrip = iso >= from && iso <= to;
+          const day = daysByDate[iso];
+          const symbols = [];
+          if (day?.type === 'travel') symbols.push('🚗');
+          if (day?.type === 'stay') symbols.push('🏖️');
+          cells.push({ date: iso, dom: d, inTrip, day, symbols });
+        }
+
+        months.push({
+          key: `${y}-${m}`,
+          label: cursor.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }),
+          cells
+        });
+
+        cursor = new Date(y, m + 1, 1);
+      }
+      return months;
+    },
+
     pickDate(iso) {
       if (!iso) return;
       const realToday = new Date().toISOString().slice(0, 10);

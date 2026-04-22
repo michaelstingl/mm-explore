@@ -31,38 +31,47 @@
       </div>
     </header>
 
-    <!-- Day Picker Sheet -->
+    <!-- Day Picker Sheet — Month Grid -->
     <div x-show="showDayPicker" class="sheet-backdrop" @click="showDayPicker = false" x-cloak>
       <div class="sheet" @click.stop>
         <div class="sheet-handle"></div>
         <div class="sheet-header">
-          <h2>Reise-Tage</h2>
+          <h2>Tag wählen</h2>
           <button @click="showDayPicker = false" class="icon-btn" aria-label="Schließen">✕</button>
         </div>
-        <div class="day-list">
-          <template x-for="day in bundle?.days || []" :key="day.date">
-            <button
-              class="day-card"
-              :class="{
-                'active': day.date === today,
-                'is-today': day.date === realToday,
-                'travel': day.type === 'travel',
-                'stay': day.type === 'stay'
-              }"
-              @click="pickDate(day.date); showDayPicker = false">
-              <div class="day-date">
-                <span class="day-dow" x-text="formatDow(day.date)"></span>
-                <span class="day-dom" x-text="formatDom(day.date)"></span>
-                <span class="day-mon" x-text="formatMon(day.date)"></span>
+        <div class="month-list">
+          <template x-for="month in calendarMonths" :key="month.key">
+            <section class="cal-month">
+              <h3 x-text="month.label"></h3>
+              <div class="cal-weekdays">
+                <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
               </div>
-              <div class="day-icon" x-text="day.type === 'travel' ? '🚗' : '🏖️'"></div>
-              <div class="day-main">
-                <span class="day-title" x-text="day.title"></span>
-                <template x-if="day.date === realToday">
-                  <span class="day-badge">heute</span>
+              <div class="cal-grid">
+                <template x-for="(cell, idx) in month.cells" :key="idx">
+                  <template x-if="cell">
+                    <button
+                      class="cal-cell"
+                      :class="{
+                        'in-trip': cell.inTrip,
+                        'active': cell.date === today,
+                        'is-today': cell.date === realToday,
+                        'travel': cell.day?.type === 'travel',
+                        'stay': cell.day?.type === 'stay'
+                      }"
+                      :disabled="!cell.inTrip"
+                      @click="cell.inTrip && (pickDate(cell.date), showDayPicker = false)">
+                      <span class="cal-dom" x-text="cell.dom"></span>
+                      <template x-if="cell.symbols.length">
+                        <span class="cal-syms" x-text="cell.symbols.join('')"></span>
+                      </template>
+                    </button>
+                  </template>
+                  <template x-if="!cell">
+                    <span class="cal-cell empty"></span>
+                  </template>
                 </template>
               </div>
-            </button>
+            </section>
           </template>
         </div>
         <div class="sheet-footer">
