@@ -18,7 +18,23 @@
   <main x-data="app" x-cloak>
     <header>
       <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
-      <button @click="view = (view === 'settings' ? 'main' : 'settings')" aria-label="Einstellungen">⚙</button>
+      <div class="header-actions">
+        <input
+          type="date"
+          class="date-picker"
+          :value="today"
+          @change="pickDate($event.target.value)"
+          :min="bundle?.trip?.from_date"
+          :max="bundle?.trip?.to_date"
+          :class="isSimulating ? 'simulating' : ''"
+          aria-label="Tag wählen">
+        <button
+          x-show="isSimulating"
+          @click="resetDate()"
+          class="date-reset"
+          aria-label="Heute">↺</button>
+        <button @click="view = (view === 'settings' ? 'main' : 'settings')" class="icon-btn" aria-label="Einstellungen">⚙</button>
+      </div>
     </header>
 
     <!-- Loading -->

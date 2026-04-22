@@ -27,12 +27,51 @@ header h1 {
   margin: 0;
 }
 
-header button {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+}
+
+.icon-btn {
   background: none;
   border: none;
   font-size: var(--font-size-4);
   cursor: pointer;
   padding: var(--size-2);
+  color: var(--color-text, #1A1A1A);
+}
+
+.date-picker {
+  background: white;
+  border: 1px solid var(--stone-3);
+  border-radius: var(--radius-2);
+  padding: var(--size-1) var(--size-2);
+  font-size: var(--font-size-1);
+  font-family: inherit;
+  color: var(--color-text, #1A1A1A);
+  min-width: 8ch;
+}
+
+.date-picker.simulating {
+  border-color: var(--color-primary, #E8743B);
+  background: color-mix(in srgb, var(--color-primary, #E8743B) 10%, white);
+  font-weight: 600;
+}
+
+.date-reset {
+  background: var(--color-primary, #E8743B);
+  color: white;
+  border: none;
+  border-radius: var(--radius-round);
+  width: 1.8em;
+  height: 1.8em;
+  font-size: var(--font-size-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 /* Empty state */

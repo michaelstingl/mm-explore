@@ -58,6 +58,24 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    get isSimulating() {
+      if (!this._simulatedDate) return false;
+      const realToday = new Date().toISOString().slice(0, 10);
+      return this._simulatedDate !== realToday;
+    },
+
+    pickDate(iso) {
+      if (!iso) return;
+      const realToday = new Date().toISOString().slice(0, 10);
+      this._simulatedDate = iso === realToday ? null : iso;
+      this.pickDefaultMode();
+    },
+
+    resetDate() {
+      this._simulatedDate = null;
+      this.pickDefaultMode();
+    },
+
     parseFragment() {
       const hash = window.location.hash;
       const match = hash.match(/#gist=(.+)/);
