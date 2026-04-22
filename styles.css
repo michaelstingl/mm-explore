@@ -356,6 +356,16 @@ header h1 {
   gap: var(--size-3);
 }
 
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-header h2 {
+  margin: 0;
+}
+
 .settings label {
   display: flex;
   flex-direction: column;

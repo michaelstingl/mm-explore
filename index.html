@@ -31,7 +31,9 @@
           @click.stop="resetDate()"
           class="date-reset"
           aria-label="Zurück zu heute">↺</button>
-        <button @click="view = (view === 'settings' ? 'main' : 'settings')" class="icon-btn" aria-label="Einstellungen">⚙</button>
+        <button @click="view = (view === 'settings' ? 'main' : 'settings')" class="icon-btn" :aria-label="view === 'settings' ? 'Schließen' : 'Einstellungen'">
+          <span x-text="view === 'settings' ? '✕' : '⚙'"></span>
+        </button>
       </div>
     </header>
 
@@ -99,7 +101,10 @@
     <!-- Settings -->
     <template x-if="view === 'settings'">
       <section class="settings">
-        <h2>Einstellungen</h2>
+        <div class="settings-header">
+          <h2>Einstellungen</h2>
+          <button @click="view = 'main'" class="btn-secondary">Fertig</button>
+        </div>
         <label>
           Gist-URL
           <input type="url" x-model="gistUrl" placeholder="https://gist.githubusercontent.com/…/raw/travel-bundle-v1.json">
