@@ -179,12 +179,24 @@ document.addEventListener('alpine:init', () => {
       if (!iso) return;
       const realToday = new Date().toISOString().slice(0, 10);
       this._simulatedDate = iso === realToday ? null : iso;
+      this._syncDateQuery();
       this.pickDefaultMode();
     },
 
     resetDate() {
       this._simulatedDate = null;
+      this._syncDateQuery();
       this.pickDefaultMode();
+    },
+
+    _syncDateQuery() {
+      const url = new URL(window.location.href);
+      if (this._simulatedDate) {
+        url.searchParams.set('date', this._simulatedDate);
+      } else {
+        url.searchParams.delete('date');
+      }
+      history.replaceState(null, '', url.toString());
     },
 
     parseFragment() {
