@@ -41,11 +41,21 @@ document.addEventListener('alpine:init', () => {
     async init() {
       console.log('M+M Explore: init');
       this.parseFragment();
+      this.parseDateQuery();
       this.gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL) || '';
       this.loadCachedBundle();
       await this.fetchBundle();
       this.applyTheme();
       this.pickDefaultMode();
+    },
+
+    parseDateQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const d = params.get('date');
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        this._simulatedDate = d;
+        console.log('Simulating date from ?date=', d);
+      }
     },
 
     parseFragment() {
