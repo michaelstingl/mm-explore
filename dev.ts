@@ -30,9 +30,13 @@ const watcher = watch(ROOT, { recursive: true }, (_event, filename) => {
 const INJECT = `
 <script>
 (() => {
-  const es = new EventSource('/__reload');
-  es.onmessage = (e) => { if (e.data === 'reload') location.reload(); };
-  es.onerror = () => console.warn('[live-reload] connection lost');
+  let es;
+  const connect = () => {
+    es = new EventSource('/__reload');
+    es.onmessage = (e) => { if (e.data === 'reload') location.reload(); };
+    es.onerror = () => { es.close(); setTimeout(connect, 1000); };
+  };
+  connect();
 })();
 </script>
 `;
@@ -46,14 +50,19 @@ const server = Bun.serve({
     if (url.pathname === "/__reload") {
       const stream = new ReadableStream({
         start(controller) {
-          const send = (msg: string) => {
+          const encoder = new TextEncoder();
+          const sendRaw = (chunk: string) => {
             try {
-              controller.enqueue(`data: ${msg}\n\n`);
+              controller.enqueue(encoder.encode(chunk));
             } catch {}
           };
+          const send = (msg: string) => sendRaw(`data: ${msg}\n\n`);
           clients.add(send);
           send("hello");
+          // Keep-alive ping every 15s (SSE comment, ignored by client)
+          const keepalive = setInterval(() => sendRaw(`: ping\n\n`), 15_000);
           req.signal.addEventListener("abort", () => {
+            clearInterval(keepalive);
             clients.delete(send);
             try { controller.close(); } catch {}
           });
@@ -61,9 +70,10 @@ const server = Bun.serve({
       });
       return new Response(stream, {
         headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache, no-transform",
           "Connection": "keep-alive",
+          "X-Accel-Buffering": "no",
         },
       });
     }
