@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute build version
+        id: version
+        run: |
+          SHA=$(git rev-parse --short=7 HEAD)
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          VERSION="v${STAMP}-${SHA}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Build version: ${VERSION}"
+
+      - name: Stamp version into sw.js
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s|^const VERSION = .*|const VERSION = '${VERSION}';|" sw.js
+          echo "--- sw.js header ---"
+          head -5 sw.js
+
+      - name: Write build metadata
+        run: |
+          cat > build.json <<EOF
+          {
+            "version": "${{ steps.version.outputs.version }}",
+            "commit": "${{ github.sha }}",
+            "commit_short": "$(git rev-parse --short=7 HEAD)",
+            "commit_message": $(git log -1 --pretty=%B | jq -Rs .),
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "ref": "${{ github.ref_name }}"
+          }
+          EOF
+          echo "--- build.json ---"
+          cat build.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

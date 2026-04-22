@@ -170,6 +170,10 @@ document.addEventListener('alpine:init', () => {
     localeOptions: LOCALE_OPTIONS,
     mapsApp: 'auto',
     mapsApps: MAPS_APPS,
+    build: null,          // { version, commit_short, commit_message, deployed_at }
+    updateAvailable: false,
+    debugEnabled: false,
+    showDebug: false,
 
     // Computed
     _simulatedDate: null,
@@ -201,10 +205,102 @@ document.addEventListener('alpine:init', () => {
       }
       const storedMaps = localStorage.getItem(STORAGE_KEY.MAPS_APP);
       this.mapsApp = MAPS_APPS.some(a => a.value === storedMaps) ? storedMaps : 'auto';
+      this.debugEnabled = isDebug();
       this.loadCachedBundle();
       await this.fetchBundle();
+      await this.loadBuildInfo();
       this.applyTheme();
       this.pickDefaultMode();
+      // Poll for new deploys every 5 min while app is open
+      setInterval(() => this.checkForUpdate(), 5 * 60 * 1000);
+    },
+
+    async loadBuildInfo() {
+      try {
+        const res = await fetch('./build.json', { cache: 'no-store' });
+        if (res.ok) {
+          this.build = await res.json();
+          dbg('build info', this.build);
+        }
+      } catch (e) {
+        dbg('build.json not available (likely dev)', e.message);
+      }
+    },
+
+    async checkForUpdate() {
+      if (!this.build?.version) return;
+      try {
+        const res = await fetch('./build.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const latest = await res.json();
+        if (latest.version && latest.version !== this.build.version) {
+          dbg('update available:', this.build.version, '→', latest.version);
+          this.updateAvailable = true;
+        }
+      } catch (e) { dbg('update check failed', e.message); }
+    },
+
+    applyUpdate() {
+      location.reload();
+    },
+
+    toggleDebug(on) {
+      this.debugEnabled = !!on;
+      window.mmDebug(this.debugEnabled);
+    },
+
+    get debugSnapshot() {
+      return {
+        build: this.build,
+        bundle: this.bundle ? {
+          trip: this.bundle.trip?.title,
+          days: this.bundle.days?.length,
+          drives: this.bundle.drives?.length,
+          stays: this.bundle.stays?.length,
+          places: this.bundle.places?.length,
+          last_updated: this.bundle.trip?.last_updated
+        } : null,
+        locale: this.locale,
+        localeOverride: this.localeOverride,
+        mapsApp: this.mapsApp,
+        mode: this.mode,
+        today: this.today,
+        realToday: this.realToday,
+        isSimulating: this.isSimulating,
+        tripState: this.tripState,
+        gistUrl: this.gistUrl,
+        lastUpdated: this.lastUpdated,
+        bundleAge: this.bundleAgeLabel,
+        offline: this.offline,
+        ua: navigator.userAgent.substring(0, 80),
+        isIOS: this.isIOS,
+        isStandalone: this.isStandalone,
+        serviceWorker: 'serviceWorker' in navigator ? 'available' : 'n/a'
+      };
+    },
+
+    async copyDebugSnapshot() {
+      const text = JSON.stringify(this.debugSnapshot, null, 2);
+      try { await navigator.clipboard.writeText(text); this.showToast('Debug-State kopiert'); }
+      catch { prompt('Debug-State:', text); }
+    },
+
+    get bundleAgeLabel() {
+      if (!this.lastUpdated) return '';
+      const ageMs = Date.now() - new Date(this.lastUpdated).getTime();
+      const sec = Math.floor(ageMs / 1000);
+      if (sec < 60) return 'gerade eben';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `vor ${min} min`;
+      const h = Math.floor(min / 60);
+      if (h < 24) return `vor ${h} h`;
+      const d = Math.floor(h / 24);
+      return `vor ${d} Tag${d > 1 ? 'en' : ''}`;
+    },
+
+    get bundleIsStale() {
+      if (!this.lastUpdated) return true;
+      return (Date.now() - new Date(this.lastUpdated).getTime()) > 60 * 60 * 1000; // > 1h
     },
 
     get locale() {

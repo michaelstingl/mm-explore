@@ -40,6 +40,12 @@
     <!-- Toast -->
     <div class="toast" x-show="toast.visible" x-transition.opacity x-text="toast.message" x-cloak></div>
 
+    <!-- Update-verfügbar-Banner -->
+    <div class="update-banner" x-show="updateAvailable" x-cloak>
+      <span>Update verfügbar</span>
+      <button @click="applyUpdate()" class="btn-primary">Jetzt laden</button>
+    </div>
+
     <!-- iOS Install Hint -->
     <div x-show="showIOSInstallHint" class="ios-hint" x-cloak>
       <div class="ios-hint-body">
@@ -156,10 +162,67 @@
 
         <hr>
 
-        <button @click="fetchBundle()" :disabled="!gistUrl" class="btn-secondary">Jetzt neu laden</button>
-        <p x-show="lastUpdated" class="muted">
-          Zuletzt aktualisiert: <span x-text="lastUpdated && new Date(lastUpdated).toLocaleString('de-DE')"></span>
+        <button @click="fetchBundle()" :disabled="!gistUrl" class="btn-secondary">
+          <span x-text="bundleIsStale ? '⚠️ Jetzt neu laden' : 'Jetzt neu laden'"></span>
+        </button>
+        <p x-show="lastUpdated" class="muted" :class="bundleIsStale ? 'stale' : ''">
+          Daten <span x-text="bundleAgeLabel"></span> ·
+          <span x-text="lastUpdated && new Date(lastUpdated).toLocaleString(locale)"></span>
         </p>
+
+        <hr>
+
+        <label class="toggle-row">
+          <span>Debug-Modus</span>
+          <input type="checkbox" :checked="debugEnabled" @change="toggleDebug($event.target.checked)">
+        </label>
+        <p class="muted" x-show="debugEnabled">
+          Verbose Console-Logs aktiv. Console-Alternative: <code>mmDebug(true/false)</code>.
+        </p>
+
+        <template x-if="debugEnabled">
+          <div class="debug-panel">
+            <div class="debug-header">
+              <strong>Debug</strong>
+              <div>
+                <button @click="showDebug = !showDebug" class="btn-copy" x-text="showDebug ? 'Einklappen' : 'Anzeigen'"></button>
+                <button @click="copyDebugSnapshot()" class="btn-copy">📋</button>
+              </div>
+            </div>
+            <div x-show="showDebug" class="debug-body">
+              <div class="debug-row" x-show="build">
+                <strong>Build</strong>
+                <div>
+                  <div>Version: <code x-text="build?.version"></code></div>
+                  <div x-show="build?.commit_short">Commit: <code x-text="build?.commit_short"></code></div>
+                  <div x-show="build?.commit_message">Message: <em x-text="build?.commit_message"></em></div>
+                  <div x-show="build?.deployed_at">Deployed: <span x-text="build && new Date(build.deployed_at).toLocaleString(locale)"></span></div>
+                </div>
+              </div>
+              <div class="debug-row">
+                <strong>Runtime</strong>
+                <div>
+                  <div>Mode: <code x-text="mode"></code> <span x-show="manualOverride" class="muted">(override)</span></div>
+                  <div>Date: <code x-text="today"></code> <span x-show="isSimulating" class="muted">(simulating)</span></div>
+                  <div>Trip state: <code x-text="tripState"></code></div>
+                  <div>Locale: <code x-text="locale"></code></div>
+                  <div>Maps: <code x-text="mapsApp"></code></div>
+                  <div>Standalone: <code x-text="isStandalone"></code> · iOS: <code x-text="isIOS"></code></div>
+                  <div>Offline: <code x-text="offline"></code></div>
+                </div>
+              </div>
+              <div class="debug-row" x-show="bundle">
+                <strong>Bundle</strong>
+                <div>
+                  <div>Trip: <code x-text="bundle?.trip?.title"></code></div>
+                  <div>Days: <code x-text="bundle?.days?.length"></code></div>
+                  <div>Drives: <code x-text="bundle?.drives?.length"></code> · Stays: <code x-text="bundle?.stays?.length"></code> · Places: <code x-text="bundle?.places?.length"></code></div>
+                  <div>Age: <code x-text="bundleAgeLabel"></code></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
 
         <hr>
 
