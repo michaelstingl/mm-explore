@@ -25,8 +25,12 @@
           :class="isSimulating ? 'day-btn simulating' : 'day-btn'"
           aria-label="Tag wählen">
           <span x-text="dayLabel(today)"></span>
-          <template x-if="isSimulating"><span class="badge">↺</span></template>
         </button>
+        <button
+          x-show="isSimulating"
+          @click.stop="resetDate()"
+          class="date-reset"
+          aria-label="Zurück zu heute">↺</button>
         <button @click="view = (view === 'settings' ? 'main' : 'settings')" class="icon-btn" aria-label="Einstellungen">⚙</button>
       </div>
     </header>
@@ -173,11 +177,7 @@
                           <li class="stop">
                             <div class="stop-main">
                               <strong x-text="stop.name"></strong>
-                              <span class="muted">
-                                <template x-if="stop.km_ab_start"><span x-text="'km ' + stop.km_ab_start"></span></template>
-                                <template x-if="stop.kw"> · <span x-text="stop.kw + ' kW'"></span></template>
-                                <template x-if="stop.stop_min"> · <span x-text="stop.stop_min + ' min'"></span></template>
-                              </span>
+                              <span class="muted" x-text="[stop.km_ab_start ? 'km ' + stop.km_ab_start : null, stop.kw ? stop.kw + ' kW' : null, stop.stop_min ? stop.stop_min + ' min' : null].filter(Boolean).join(' · ')"></span>
                               <template x-if="stop.note">
                                 <span class="muted stop-note" x-text="stop.note"></span>
                               </template>
