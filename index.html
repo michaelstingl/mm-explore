@@ -108,6 +108,19 @@
 
         <hr>
 
+        <label>
+          Sprache / Locale
+          <select
+            :value="localeOverride"
+            @change="setLocaleOverride($event.target.value)">
+            <template x-for="opt in localeOptions" :key="opt.value">
+              <option :value="opt.value" :selected="opt.value === localeOverride" x-text="opt.value ? opt.label : opt.label + ' (' + navigator.language + ')'"></option>
+            </template>
+          </select>
+        </label>
+
+        <hr>
+
         <button @click="fetchBundle()" :disabled="!gistUrl" class="btn-secondary">Jetzt neu laden</button>
         <p x-show="lastUpdated" class="muted">
           Zuletzt aktualisiert: <span x-text="lastUpdated && new Date(lastUpdated).toLocaleString('de-DE')"></span>

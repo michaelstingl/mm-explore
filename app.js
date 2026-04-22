@@ -3,34 +3,20 @@ const STORAGE_KEY = {
   BUNDLE: 'mm_bundle_cache',
   BUNDLE_TIMESTAMP: 'mm_bundle_timestamp',
   MODE_OVERRIDE: 'mm_mode_override',
-  LAST_PLACE: 'mm_last_place'
+  LAST_PLACE: 'mm_last_place',
+  LOCALE_OVERRIDE: 'mm_locale_override'
 };
 
-// Locale helpers — respect system preferences
-const LOCALE = navigator.language || 'de-DE';
-
-function getFirstDayOfWeek() {
-  try {
-    const info = new Intl.Locale(LOCALE).getWeekInfo?.() ?? new Intl.Locale(LOCALE).weekInfo;
-    return info?.firstDay ?? 1; // 1 = Monday (ISO default)
-  } catch {
-    return 1;
-  }
-}
-
-function getWeekdayNames(format = 'short') {
-  // Returns 7 names starting at locale's firstDay
-  const firstDay = getFirstDayOfWeek(); // 1=Mon, 7=Sun
-  const fmt = new Intl.DateTimeFormat(LOCALE, { weekday: format });
-  const names = [];
-  // Anchor: 2024-01-01 is a Monday
-  for (let i = 0; i < 7; i++) {
-    const dayIndex = ((firstDay - 1) + i) % 7; // 0=Mon..6=Sun
-    const d = new Date(2024, 0, 1 + dayIndex); // Jan 1, 2024 + offset
-    names.push(fmt.format(d));
-  }
-  return names;
-}
+const LOCALE_OPTIONS = [
+  { value: '', label: 'Auto' },
+  { value: 'de-DE', label: 'Deutsch (DE)' },
+  { value: 'de-AT', label: 'Deutsch (AT)' },
+  { value: 'de-CH', label: 'Deutsch (CH)' },
+  { value: 'en-US', label: 'English (US)' },
+  { value: 'en-GB', label: 'English (UK)' },
+  { value: 'it-IT', label: 'Italiano' },
+  { value: 'fr-FR', label: 'Français' }
+];
 
 document.addEventListener('alpine:init', () => {
   Alpine.data('app', () => ({
@@ -46,6 +32,8 @@ document.addEventListener('alpine:init', () => {
     gistUrl: '',
     lastUpdated: null,
     showDayPicker: false,
+    localeOverride: '',
+    localeOptions: LOCALE_OPTIONS,
 
     // Computed
     _simulatedDate: null,
@@ -70,10 +58,30 @@ document.addEventListener('alpine:init', () => {
       this.parseFragment();
       this.parseDateQuery();
       this.gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL) || '';
+      this.localeOverride = localStorage.getItem(STORAGE_KEY.LOCALE_OVERRIDE) || '';
       this.loadCachedBundle();
       await this.fetchBundle();
       this.applyTheme();
       this.pickDefaultMode();
+    },
+
+    get locale() {
+      return this.localeOverride || navigator.language || 'de-DE';
+    },
+
+    setLocaleOverride(value) {
+      this.localeOverride = value || '';
+      if (value) localStorage.setItem(STORAGE_KEY.LOCALE_OVERRIDE, value);
+      else localStorage.removeItem(STORAGE_KEY.LOCALE_OVERRIDE);
+    },
+
+    get firstDayOfWeek() {
+      try {
+        const info = new Intl.Locale(this.locale).getWeekInfo?.() ?? new Intl.Locale(this.locale).weekInfo;
+        return info?.firstDay ?? 1;
+      } catch {
+        return 1;
+      }
     },
 
     parseDateQuery() {
@@ -97,17 +105,17 @@ document.addEventListener('alpine:init', () => {
     dayLabel(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleDateString(LOCALE, { weekday: 'short', day: '2-digit', month: '2-digit' });
+      return d.toLocaleDateString(this.locale, { weekday: 'short', day: '2-digit', month: '2-digit' });
     },
 
     formatFullDate(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      return d.toLocaleDateString(this.locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     },
 
     formatDow(iso) {
-      return new Date(iso).toLocaleDateString(LOCALE, { weekday: 'short' });
+      return new Date(iso).toLocaleDateString(this.locale, { weekday: 'short' });
     },
 
     formatDom(iso) {
@@ -115,11 +123,19 @@ document.addEventListener('alpine:init', () => {
     },
 
     formatMon(iso) {
-      return new Date(iso).toLocaleDateString(LOCALE, { month: 'short' });
+      return new Date(iso).toLocaleDateString(this.locale, { month: 'short' });
     },
 
     get weekdayHeaders() {
-      return getWeekdayNames('short');
+      const firstDay = this.firstDayOfWeek;
+      const fmt = new Intl.DateTimeFormat(this.locale, { weekday: 'short' });
+      const names = [];
+      for (let i = 0; i < 7; i++) {
+        const dayIndex = ((firstDay - 1) + i) % 7;
+        const d = new Date(2024, 0, 1 + dayIndex);
+        names.push(fmt.format(d));
+      }
+      return names;
     },
 
     get calendarMonths() {
@@ -132,7 +148,7 @@ document.addEventListener('alpine:init', () => {
       let cursor = new Date(from.slice(0, 7) + '-01');
       const end = new Date(to.slice(0, 7) + '-01');
 
-      const firstDayOfWeek = getFirstDayOfWeek(); // 1=Mon, 7=Sun
+      const firstDayOfWeek = this.firstDayOfWeek; // 1=Mon, 7=Sun
 
       while (cursor <= end) {
         const y = cursor.getFullYear();
@@ -172,7 +188,7 @@ document.addEventListener('alpine:init', () => {
 
         months.push({
           key: `${y}-${m}`,
-          label: cursor.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' }),
+          label: cursor.toLocaleDateString(this.locale, { month: 'long', year: 'numeric' }),
           cells
         });
 
@@ -328,7 +344,7 @@ document.addEventListener('alpine:init', () => {
     formatCheckin(iso) {
       if (!iso) return '';
       const d = new Date(iso);
-      return d.toLocaleString(LOCALE, {
+      return d.toLocaleString(this.locale, {
         weekday: 'short',
         day: '2-digit',
         month: '2-digit',

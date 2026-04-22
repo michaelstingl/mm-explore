@@ -362,12 +362,19 @@ header h1 {
   gap: var(--size-1);
 }
 
-.settings input[type="url"] {
+.settings input[type="url"],
+.settings select {
   padding: var(--size-2);
   font-size: var(--font-size-2);
   border: 1px solid var(--stone-4);
   border-radius: var(--radius-2);
   font-family: var(--font-mono);
+  background: white;
+  color: var(--color-text, #1A1A1A);
+}
+
+.settings select {
+  font-family: inherit;
 }
 
 .settings button.danger {
