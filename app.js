@@ -128,12 +128,27 @@ function normalizeGistUrl(raw) {
   return raw;
 }
 
+// Debug logging — toggle via:  mmDebug(true) / mmDebug(false)   in Safari console
+const DEBUG_KEY = 'mm_debug';
+function isDebug() { return localStorage.getItem(DEBUG_KEY) === '1'; }
+function dbg(...args) { if (isDebug()) console.log('[mm]', ...args); }
+window.mmDebug = (on) => {
+  if (on === undefined) {
+    console.log('debug:', isDebug() ? 'ON' : 'OFF');
+    console.log('usage: mmDebug(true)   mmDebug(false)');
+    return isDebug();
+  }
+  if (on) { localStorage.setItem(DEBUG_KEY, '1'); console.log('debug ON — reload for SW logs'); }
+  else { localStorage.removeItem(DEBUG_KEY); console.log('debug OFF — reload for SW logs'); }
+  return on;
+};
+
 // Register Service Worker (prod only — skip on localhost dev to avoid caching pain)
 if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[SW] registered:', reg.scope))
-      .catch(err => console.warn('[SW] registration failed:', err));
+      .then(reg => dbg('[sw] registered:', reg.scope))
+      .catch(err => console.warn('[sw] registration failed:', err));
   });
 }
 
@@ -175,7 +190,7 @@ document.addEventListener('alpine:init', () => {
 
     // Lifecycle
     async init() {
-      console.log('M+M Explore: init');
+      dbg('init · debug is ON (mmDebug(false) to silence)');
       this.parseFragment();
       this.parseDateQuery();
       this.gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL) || '';
@@ -252,11 +267,12 @@ document.addEventListener('alpine:init', () => {
     },
 
     logMapsClick(location, mode) {
+      if (!isDebug()) return;
       const appUsed = this.mapsApp === 'auto'
         ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')
         : this.mapsApp;
       const url = buildMapsUrl(location, this.mapsApp, mode);
-      console.log('[maps]', {
+      console.log('[mm maps]', {
         setting: this.mapsApp,
         resolved: appUsed,
         mode,
@@ -288,7 +304,7 @@ document.addEventListener('alpine:init', () => {
       const d = params.get('date');
       if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
         this._simulatedDate = d;
-        console.log('Simulating date from ?date=', d);
+        dbg('simulate date from ?date=', d);
       }
     },
 
@@ -502,14 +518,19 @@ document.addEventListener('alpine:init', () => {
     async fetchBundle() {
       const url = localStorage.getItem(STORAGE_KEY.GIST_URL);
       if (!url) {
+        dbg('fetchBundle: no gist URL, showing settings');
         this.loading = false;
         this.view = 'settings';
         return;
       }
+      dbg('fetchBundle: fetching', url);
       try {
+        const t0 = performance.now();
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        const ms = (performance.now() - t0).toFixed(0);
+        dbg(`fetchBundle: ok in ${ms}ms —`, data.trip?.title, `(${data.days?.length} days)`);
         this.bundle = data;
         localStorage.setItem(STORAGE_KEY.BUNDLE, JSON.stringify(data));
         const ts = new Date().toISOString();
@@ -517,7 +538,7 @@ document.addEventListener('alpine:init', () => {
         this.lastUpdated = ts;
         this.offline = false;
       } catch (e) {
-        console.warn('Fetch failed, using cache', e);
+        console.warn('[mm] fetch failed, using cache', e);
         this.offline = true;
         if (!this.bundle) this.error = 'offline-no-cache';
       } finally {
@@ -548,6 +569,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     setMode(m) {
+      dbg('mode →', m);
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
