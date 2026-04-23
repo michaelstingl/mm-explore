@@ -1053,7 +1053,7 @@ document.addEventListener('alpine:init', () => {
       const map = {
         sight: '🏛️',
         food: '🍽️',
-        gelato: '🍨',
+        gelato: '🍦',
         beach: '🏖️',
         charge: '⚡',
         other: '📍'
