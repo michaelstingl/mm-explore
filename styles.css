@@ -1022,6 +1022,13 @@ header h1 {
   line-height: 1.5;
   font-family: var(--font-body);
 }
+.ios-share {
+  display: inline-block;
+  width: 0.85em;
+  height: 1.1em;
+  vertical-align: -0.25em;
+  margin: 0 0.1em;
+}
 .ios-hint button {
   background: rgba(255,255,255,0.15);
   color: var(--color-bg);
