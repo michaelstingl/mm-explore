@@ -730,7 +730,7 @@ document.addEventListener('alpine:init', () => {
 
     pickDefaultMode() {
       const override = localStorage.getItem(STORAGE_KEY.MODE_OVERRIDE);
-      if (override === 'transit' || override === 'explore') {
+      if (override === 'transit' || override === 'explore' || override === 'discover') {
         this.mode = override;
         this.manualOverride = true;
         return;

@@ -180,9 +180,7 @@ header h1 {
   z-index: 50;
   margin: 0 auto;
   max-width: var(--max-width);
-  display: grid;
-  grid-auto-columns: 1fr;
-  grid-auto-flow: column;
+  display: flex;
   gap: 0.25rem;
   padding: 0.4rem var(--gutter);
   padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
@@ -193,6 +191,8 @@ header h1 {
 }
 
 .tab-bar .tab {
+  flex: 1 1 0;
+  min-width: 0;
   background: none;
   border: 0;
   padding: 0.45rem 0.5rem 0.35rem;
