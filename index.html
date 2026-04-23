@@ -271,14 +271,14 @@
                           <p class="muted stay-note" x-text="stay.note"></p>
                         </template>
                         <div class="stay-actions">
-                          <button @click="copyLocation(stay)" class="btn-secondary"><span aria-hidden="true">📋</span> Kopieren</button>
+                          <button @click="copyLocation(stay)" class="action-btn" aria-label="Adresse kopieren">📋</button>
                           <template x-if="stay.maps_url">
-                            <a :href="stay.maps_url" target="_blank" class="btn-primary"><span aria-hidden="true">🚙</span> Route</a>
+                            <a :href="stay.maps_url" target="_blank" class="action-btn action-btn-primary" aria-label="Route">🚙</a>
                           </template>
                           <template x-if="stay.phone">
-                            <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
+                            <a :href="'tel:' + stay.phone" class="action-btn" aria-label="Anrufen">📞</a>
                           </template>
-                          <button @click="stayDetails = stay" class="btn-secondary"><span aria-hidden="true">📄</span> Details</button>
+                          <button @click="stayDetails = stay" class="action-btn" aria-label="Details">📄</button>
                         </div>
                       </article>
                     </template>
@@ -290,9 +290,9 @@
                           <h3 x-text="'Orte in ' + selectedPlace.name"></h3>
                           <button
                             @click="showPlaceOnMap(selectedPlace)"
-                            class="btn-copy cluster-shortcut"
+                            class="action-btn"
                             :aria-label="'Alle Orte in ' + selectedPlace.name + ' auf Karte'">
-                            <span aria-hidden="true">🗺️</span> Alle
+                            🗺️
                           </button>
                         </div>
                         <ul class="poi-list">
@@ -306,12 +306,12 @@
                                 </template>
                               </div>
                               <div class="poi-actions">
-                                <button @click="copyLocation(poi)" class="btn-copy" aria-label="Ort kopieren">📋</button>
+                                <button @click="copyLocation(poi)" class="action-btn" aria-label="Ort kopieren">📋</button>
                                 <template x-if="poi.coords">
-                                  <button @click="showPoiOnMap(poi)" class="btn-copy" aria-label="Auf Karte zeigen">🗺️</button>
+                                  <button @click="showPoiOnMap(poi)" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
                                 </template>
                                 <template x-if="poi.maps_url || poi.coords">
-                                  <a :href="mapsUrl(poi, 'nav') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps-App öffnen" @click="logMapsClick(poi, 'nav')">🚙</a>
+                                  <a :href="mapsUrl(poi, 'nav') || poi.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(poi, 'nav')">🚙</a>
                                 </template>
                               </div>
                             </li>
@@ -404,9 +404,9 @@
                     <p class="muted" x-text="drive.note"></p>
                   </template>
                   <div class="inline-actions">
-                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-secondary"><span aria-hidden="true">📋</span> Kopieren</button>
+                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="action-btn" aria-label="Ziel kopieren">📋</button>
                     <template x-if="drive.maps_url || drive.coords">
-                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')"><span aria-hidden="true">🚙</span> Route öffnen</a>
+                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="action-btn action-btn-primary" @click="logMapsClick(drive, 'nav')" aria-label="Route öffnen">🚙</a>
                     </template>
                   </div>
 
@@ -424,9 +424,9 @@
                               </template>
                             </div>
                             <div class="stop-actions">
-                              <button @click="copyLocation(stop)" class="btn-copy" aria-label="Stopp kopieren">📋</button>
+                              <button @click="copyLocation(stop)" class="action-btn" aria-label="Stopp kopieren">📋</button>
                               <template x-if="stop.maps_url || stop.coords">
-                                <a :href="mapsUrl(stop, 'nav') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps-App öffnen" @click="logMapsClick(stop, 'nav')">🚙</a>
+                                <a :href="mapsUrl(stop, 'nav') || stop.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(stop, 'nav')">🚙</a>
                               </template>
                             </div>
                           </li>
@@ -449,14 +449,14 @@
                       <p class="muted stay-note" x-text="stay.note"></p>
                     </template>
                     <div class="stay-actions">
-                      <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
+                      <button @click="copyLocation(stay)" class="action-btn" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.maps_url || stay.coords">
-                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')"><span aria-hidden="true">🚙</span> Route</a>
+                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="action-btn action-btn-primary" @click="logMapsClick(stay, 'nav')" aria-label="Route">🚙</a>
                       </template>
                       <template x-if="stay.phone">
-                        <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
+                        <a :href="'tel:' + stay.phone" class="action-btn" aria-label="Anrufen">📞</a>
                       </template>
-                      <button @click="stayDetails = stay" class="btn-secondary">📄 Details</button>
+                      <button @click="stayDetails = stay" class="action-btn" aria-label="Details">📄</button>
                     </div>
                   </article>
                 </template>

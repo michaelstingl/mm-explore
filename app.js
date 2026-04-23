@@ -1110,6 +1110,7 @@ document.addEventListener('alpine:init', () => {
         food: '🍽️',
         gelato: '🍦',
         beach: '🏖️',
+        nature: '🏞️',
         charge: '⚡',
         other: '📍'
       };
