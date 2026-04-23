@@ -382,12 +382,13 @@
           </div>
         </template>
 
-        <!-- Entdecken-Modus (Karte) -->
-        <template x-if="mode === 'discover'">
-          <div class="discover">
-            <div id="map" class="map" x-init="$nextTick(() => initMap($el))"></div>
-          </div>
-        </template>
+        <!-- Entdecken-Modus (Karte) —
+             x-show (not x-if) so the Leaflet container stays mounted across
+             tab switches. Otherwise Leaflet holds a ref to a torn-down DOM
+             node and the map renders blank on re-entry. -->
+        <div x-show="mode === 'discover'" class="discover" x-cloak>
+          <div id="map" class="map"></div>
+        </div>
 
         <!-- Unterwegs-Modus -->
         <template x-if="mode === 'transit'">

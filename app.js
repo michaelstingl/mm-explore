@@ -750,8 +750,15 @@ document.addEventListener('alpine:init', () => {
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
-      if (m === 'discover' && this._map) {
-        setTimeout(() => this._map.invalidateSize(), 50);
+      if (m === 'discover') {
+        // Lazy init on first visit: container must be visible (non-zero size)
+        // for Leaflet's fitBounds to compute correct coordinates.
+        this.$nextTick(() => {
+          const el = document.getElementById('map');
+          if (!el) return;
+          if (!this._mapInited) this.initMap(el);
+          else setTimeout(() => this._map?.invalidateSize(), 50);
+        });
       }
     },
 
