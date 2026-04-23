@@ -892,6 +892,11 @@ document.addEventListener('alpine:init', () => {
           if (action === 'copy') {
             e.preventDefault();
             this.copyLocation(poi);
+          } else if (action === 'erleben') {
+            e.preventDefault();
+            if (this._clusterPlaceId) this.selectPlace(this._clusterPlaceId);
+            this.setMode('explore');
+            map.closePopup();
           }
         }
       });
@@ -960,6 +965,7 @@ document.addEventListener('alpine:init', () => {
       // Stash POIs so the delegated popup-button handler can look them
       // up by index — Leaflet's popups are plain HTML, no Alpine scope.
       this._clusterPois = place.pois;
+      this._clusterPlaceId = place.id;
       place.pois.forEach((poi, idx) => {
         if (!poi.coords) return;
         const icon = L.divIcon({
@@ -977,6 +983,7 @@ document.addEventListener('alpine:init', () => {
             ${note}
             <div class="mm-pop-actions">
               <button class="action-btn" aria-label="Kopieren" data-poi-idx="${idx}" data-action="copy">📋</button>
+              <button class="action-btn" aria-label="In Erleben öffnen" data-poi-idx="${idx}" data-action="erleben">🏖️</button>
               <a class="action-btn action-btn-primary" aria-label="In Maps-App öffnen" href="${escapeHtml(mapsHref)}" target="_blank">🚙</a>
             </div>
           </div>
