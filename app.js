@@ -946,6 +946,13 @@ document.addEventListener('alpine:init', () => {
       const L = window.L;
       const map = this._map;
       map.invalidateSize();
+
+      // Expand the surrounding cluster so siblings show up too.
+      // _showPlacePois also fitBounds to the whole cluster — preserves
+      // context instead of zooming blindly to a single POI.
+      const placeId = this.selectedPlace?.id;
+      if (placeId) this._showPlacePois(placeId);
+
       if (this._poiHighlight) map.removeLayer(this._poiHighlight);
       const icon = L.divIcon({
         className: 'mm-pin mm-pin-poi',
@@ -957,7 +964,10 @@ document.addEventListener('alpine:init', () => {
         .addTo(map)
         .bindPopup(`<div class="mm-pop"><div class="mm-pop-title">${escapeHtml(poi.name || '')}</div>${poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : ''}</div>`)
         .openPopup();
-      map.setView(poi.coords, 15, { animate: false });
+
+      // If we didn't have a selectedPlace context, fall back to a single-POI
+      // zoom so the user still lands near the tapped marker.
+      if (!placeId) map.setView(poi.coords, 15, { animate: false });
     },
 
     _popupHtml(name, isoDate, placeId, isStay) {
