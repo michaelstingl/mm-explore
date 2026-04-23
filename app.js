@@ -787,16 +787,15 @@ document.addEventListener('alpine:init', () => {
 
       const pinsLatLngs = [];
 
-      // Main route: follow the drives chain chronologically. Match each
-      // drive's from/to string to a Place by name. A drive whose destination
-      // doesn't match any place (e.g. "Kalabrien 2 (TBD)" or "Erlangen") is
-      // a GAP. When a gap sits between two confirmed places AND candidates
-      // exist, fork the route: draw dashed polylines through each candidate
-      // connecting the adjacent confirmed points. Trailing gaps with no
-      // reconnect (returning home) are simply skipped.
-      const drivesSorted = (this.bundle.drives || []).slice()
-        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-      const candidates = places.filter(p => p.status === 'candidate' && p.coords);
+      // Route rendering: one polyline per Drive. Confirmed drives get a
+      // solid adria-blue segment, candidates get dashed terracotta. Consecutive
+      // segments that share endpoints naturally appear as a continuous line;
+      // forks (multiple candidate drives leaving the same place) render as
+      // parallel branches without any chain-building logic here.
+      //
+      // Endpoint resolution: prefer explicit Drive.*_place_id (schema-clean).
+      // Fall back to name matching — normalized display name, slug of
+      // display name, or id — so legacy bundles keep rendering.
       const normName = (s) => (s || '').toLowerCase().replace(/\s*\(.*?\)\s*/g, '').trim();
       const slugify = (s) => (s || '').toLowerCase().replace(/\s*\(.*?\)\s*/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       const placeLookup = new Map();
@@ -806,77 +805,25 @@ document.addEventListener('alpine:init', () => {
         placeLookup.set(slugify(p.name), p);
       }
       const findPlaceByRef = (ref) => placeLookup.get(normName(ref)) || placeLookup.get(slugify(ref)) || null;
-
-      // Resolve a Drive endpoint to a Place. Prefer explicit *_place_id
-      // (schema-clean) and fall back to name matching only for legacy bundles
-      // that don't yet carry id refs.
       const resolveEndpoint = (placeId, displayName) => {
         if (placeId && placesById[placeId]?.coords) return placesById[placeId];
         return findPlaceByRef(displayName);
       };
 
-      const waypoints = [];
-      if (drivesSorted.length) {
-        const d0 = drivesSorted[0];
-        const first = resolveEndpoint(d0.from_place_id, d0.from);
-        if (first) waypoints.push({ kind: 'place', place: first });
-      }
-      for (const d of drivesSorted) {
-        const p = resolveEndpoint(d.to_place_id, d.to);
+      for (const d of (this.bundle.drives || [])) {
+        const from = resolveEndpoint(d.from_place_id, d.from);
+        const to = resolveEndpoint(d.to_place_id, d.to);
+        if (!from?.coords || !to?.coords) continue;
         const isCandidate = d.status === 'candidate';
-        waypoints.push(p ? { kind: 'place', place: p, candidate: isCandidate } : { kind: 'gap' });
+        L.polyline([from.coords, to.coords], {
+          className: isCandidate ? 'mm-route-candidate' : 'mm-route',
+          color: isCandidate ? '#E8743B' : '#2E5266',
+          weight: isCandidate ? 2.5 : 3,
+          opacity: 0.75,
+          dashArray: isCandidate ? '4 6' : undefined,
+          interactive: false,
+        }).addTo(map);
       }
-
-      let run = { kind: null, points: [] };
-      const flushRun = () => {
-        if (run.points.length >= 2) {
-          const isCandidate = run.kind === 'candidate';
-          L.polyline(run.points.slice(), {
-            className: isCandidate ? 'mm-route-candidate' : 'mm-route',
-            color: isCandidate ? '#E8743B' : '#2E5266',
-            weight: isCandidate ? 2.5 : 3,
-            opacity: 0.75,
-            dashArray: isCandidate ? '4 6' : undefined,
-            interactive: false,
-          }).addTo(map);
-        }
-        run = { kind: null, points: [] };
-      };
-
-      for (let i = 0; i < waypoints.length; i++) {
-        const w = waypoints[i];
-        if (w.kind === 'place') {
-          const nextKind = w.candidate ? 'candidate' : 'solid';
-          if (run.kind && run.kind !== nextKind && run.points.length) {
-            // Transition: reuse last point as junction, flush, restart with that point
-            const junction = run.points[run.points.length - 1];
-            flushRun();
-            run = { kind: nextKind, points: [junction] };
-          }
-          run.kind = nextKind;
-          run.points.push(w.place.coords);
-          continue;
-        }
-        // Legacy gap: infer fork through all candidate Place entries.
-        // Only used when the agent hasn't (yet) migrated to concrete
-        // status='candidate' drives with explicit to_place_ids.
-        const prev = run.points[run.points.length - 1];
-        flushRun();
-        const nextW = waypoints.slice(i + 1).find(x => x.kind === 'place');
-        if (prev && nextW && candidates.length) {
-          for (const cand of candidates) {
-            L.polyline([prev, cand.coords, nextW.place.coords], {
-              className: 'mm-route-candidate',
-              color: '#E8743B',
-              weight: 2.5,
-              opacity: 0.75,
-              dashArray: '4 6',
-              interactive: false,
-            }).addTo(map);
-          }
-        }
-      }
-      flushRun();
 
       // Stay-Pins (Adria-Blau, kräftig)
       stays.forEach(stay => {
