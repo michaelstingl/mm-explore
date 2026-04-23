@@ -807,38 +807,61 @@ document.addEventListener('alpine:init', () => {
       }
       const findPlaceByRef = (ref) => placeLookup.get(normName(ref)) || placeLookup.get(slugify(ref)) || null;
 
+      // Resolve a Drive endpoint to a Place. Prefer explicit *_place_id
+      // (schema-clean) and fall back to name matching only for legacy bundles
+      // that don't yet carry id refs.
+      const resolveEndpoint = (placeId, displayName) => {
+        if (placeId && placesById[placeId]?.coords) return placesById[placeId];
+        return findPlaceByRef(displayName);
+      };
+
       const waypoints = [];
       if (drivesSorted.length) {
-        const first = findPlaceByRef(drivesSorted[0].from);
+        const d0 = drivesSorted[0];
+        const first = resolveEndpoint(d0.from_place_id, d0.from);
         if (first) waypoints.push({ kind: 'place', place: first });
       }
       for (const d of drivesSorted) {
-        const p = findPlaceByRef(d.to);
-        waypoints.push(p ? { kind: 'place', place: p } : { kind: 'gap' });
+        const p = resolveEndpoint(d.to_place_id, d.to);
+        const isCandidate = d.status === 'candidate';
+        waypoints.push(p ? { kind: 'place', place: p, candidate: isCandidate } : { kind: 'gap' });
       }
 
-      let solidRun = [];
-      const flushSolid = () => {
-        if (solidRun.length >= 2) {
-          L.polyline(solidRun.slice(), {
-            className: 'mm-route',
-            color: '#2E5266',
-            weight: 3,
+      let run = { kind: null, points: [] };
+      const flushRun = () => {
+        if (run.points.length >= 2) {
+          const isCandidate = run.kind === 'candidate';
+          L.polyline(run.points.slice(), {
+            className: isCandidate ? 'mm-route-candidate' : 'mm-route',
+            color: isCandidate ? '#E8743B' : '#2E5266',
+            weight: isCandidate ? 2.5 : 3,
             opacity: 0.75,
+            dashArray: isCandidate ? '4 6' : undefined,
             interactive: false,
           }).addTo(map);
         }
-        solidRun = [];
+        run = { kind: null, points: [] };
       };
 
       for (let i = 0; i < waypoints.length; i++) {
         const w = waypoints[i];
         if (w.kind === 'place') {
-          solidRun.push(w.place.coords);
+          const nextKind = w.candidate ? 'candidate' : 'solid';
+          if (run.kind && run.kind !== nextKind && run.points.length) {
+            // Transition: reuse last point as junction, flush, restart with that point
+            const junction = run.points[run.points.length - 1];
+            flushRun();
+            run = { kind: nextKind, points: [junction] };
+          }
+          run.kind = nextKind;
+          run.points.push(w.place.coords);
           continue;
         }
-        const prev = solidRun[solidRun.length - 1];
-        flushSolid();
+        // Legacy gap: infer fork through all candidate Place entries.
+        // Only used when the agent hasn't (yet) migrated to concrete
+        // status='candidate' drives with explicit to_place_ids.
+        const prev = run.points[run.points.length - 1];
+        flushRun();
         const nextW = waypoints.slice(i + 1).find(x => x.kind === 'place');
         if (prev && nextW && candidates.length) {
           for (const cand of candidates) {
@@ -853,7 +876,7 @@ document.addEventListener('alpine:init', () => {
           }
         }
       }
-      flushSolid();
+      flushRun();
 
       // Stay-Pins (Adria-Blau, kräftig)
       stays.forEach(stay => {

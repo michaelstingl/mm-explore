@@ -90,17 +90,20 @@
       "required": ["id", "date", "from", "to"],
       "additionalProperties": false,
       "properties": {
-        "id":           { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-        "date":         { "$ref": "#/$defs/Date" },
-        "from":         { "type": "string", "minLength": 1 },
-        "to":           { "type": "string", "minLength": 1 },
-        "km":           { "type": ["integer", "null"], "minimum": 0 },
-        "duration_min": { "type": ["integer", "null"], "minimum": 0, "description": "Total duration including stops, in minutes." },
-        "route":        { "type": "string", "description": "Free-form route description (highways, notable waypoints)." },
-        "maps_url":     { "type": ["string", "null"], "format": "uri", "description": "Fallback navigation URL if coords unavailable." },
-        "coords":       { "$ref": "#/$defs/Coords", "description": "Destination coordinates for dynamic maps URL generation." },
-        "stops":        { "type": "array", "items": { "$ref": "#/$defs/Stop" } },
-        "note":         { "type": "string", "description": "Short operator note shown on the drive card." }
+        "id":            { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "date":          { "$ref": "#/$defs/Date" },
+        "from":          { "type": "string", "minLength": 1, "description": "Display name of origin (e.g. 'Tropea'). Prefer also setting from_place_id when the origin is a known Place." },
+        "to":            { "type": "string", "minLength": 1, "description": "Display name of destination. Prefer also setting to_place_id when the destination is a known Place." },
+        "from_place_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional explicit reference to a Place by id. Authoritative when present; avoids fragile name matching for route rendering." },
+        "to_place_id":   { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional explicit reference to a Place by id. For TBD destinations (e.g. a not-yet-decided candidate location), leave unset and use status='candidate' on the concrete per-candidate drive entries instead." },
+        "status":        { "type": "string", "enum": ["candidate", "confirmed"], "description": "Defaults to 'confirmed' when omitted. Use 'candidate' to mark an unconfirmed drive — e.g. one of several alternatives the traveler still has to choose between. Candidate drives render dashed on the map." },
+        "km":            { "type": ["integer", "null"], "minimum": 0 },
+        "duration_min":  { "type": ["integer", "null"], "minimum": 0, "description": "Total duration including stops, in minutes." },
+        "route":         { "type": "string", "description": "Free-form route description (highways, notable waypoints)." },
+        "maps_url":      { "type": ["string", "null"], "format": "uri", "description": "Fallback navigation URL if coords unavailable." },
+        "coords":        { "$ref": "#/$defs/Coords", "description": "Destination coordinates for dynamic maps URL generation." },
+        "stops":         { "type": "array", "items": { "$ref": "#/$defs/Stop" } },
+        "note":          { "type": "string", "description": "Short operator note shown on the drive card." }
       }
     },
 
