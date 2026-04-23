@@ -1463,3 +1463,19 @@ main.mode-discover {
   background: transparent;
   padding: 0;
 }
+
+/* ---------- POI list header (title + cluster shortcut) ---------- */
+.poi-list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.poi-list-header h3 {
+  margin: 0;
+}
+.poi-list-header .btn-copy {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

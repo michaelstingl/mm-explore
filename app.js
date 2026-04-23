@@ -886,10 +886,36 @@ document.addEventListener('alpine:init', () => {
         map.invalidateSize();
         if (this._pendingPoiFocus) {
           this._applyPoiFocus();
+        } else if (this._pendingPlaceFocus) {
+          this._applyPlaceFocus();
         } else if (pinsLatLngs.length) {
           map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
         }
       }, 100);
+    },
+
+    // Jump to the Entdecken tab and expand the whole cluster of a place
+    // (all POIs + the place center) without any single-POI highlight.
+    showPlaceOnMap(place) {
+      if (!place?.id) return;
+      pushLog('user', `place → map: ${place.name}`);
+      this._pendingPlaceFocus = place.id;
+      this.setMode('discover');
+      if (this._mapInited) {
+        this.$nextTick(() => setTimeout(() => this._applyPlaceFocus(), 50));
+      }
+    },
+
+    _applyPlaceFocus() {
+      const placeId = this._pendingPlaceFocus;
+      if (!placeId || !this._map) return;
+      this._pendingPlaceFocus = null;
+      this._map.invalidateSize();
+      if (this._poiHighlight) {
+        this._map.removeLayer(this._poiHighlight);
+        this._poiHighlight = null;
+      }
+      this._showPlacePois(placeId);
     },
 
     // Jump to the Entdecken tab and highlight a specific POI on the map.

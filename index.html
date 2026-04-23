@@ -361,7 +361,15 @@
                     <!-- POI list -->
                     <template x-if="selectedPlace.pois?.length">
                       <article class="card">
-                        <h3 x-text="'Orte in ' + selectedPlace.name"></h3>
+                        <div class="poi-list-header">
+                          <h3 x-text="'Orte in ' + selectedPlace.name"></h3>
+                          <button
+                            @click="showPlaceOnMap(selectedPlace)"
+                            class="btn-copy"
+                            :aria-label="'Alle Orte in ' + selectedPlace.name + ' auf Karte'">
+                            🗺️ Cluster
+                          </button>
+                        </div>
                         <ul class="poi-list">
                           <template x-for="poi in selectedPlace.pois" :key="poi.name">
                             <li class="poi">
