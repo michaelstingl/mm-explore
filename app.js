@@ -509,14 +509,11 @@ document.addEventListener('alpine:init', () => {
       // Use query param (?gist=) instead of fragment (#gist=) — fragments are stripped
       // when recipient adds the PWA to iOS home screen, query params are preserved in start_url.
       const shareUrl = `${location.origin}${location.pathname}?gist=${encodeURIComponent(gistUrl)}`;
-      const shareData = {
-        title: this.bundle?.trip?.title || 'M+M Explore',
-        text: this.bundle?.trip?.subtitle || 'Unser Reise-Begleiter',
-        url: shareUrl
-      };
       if (navigator.share) {
         try {
-          await navigator.share(shareData);
+          // Share only the URL — no title, no text. Most share targets append
+          // title/text as their own lines which adds noise.
+          await navigator.share({ url: shareUrl });
         } catch (e) {
           if (e.name !== 'AbortError') console.warn('Share failed', e);
         }
