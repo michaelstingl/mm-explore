@@ -271,6 +271,7 @@
                           <p class="muted stay-note" x-text="stay.note"></p>
                         </template>
                         <div class="stay-actions">
+                          <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                           <template x-if="stay.maps_url">
                             <a :href="stay.maps_url" target="_blank" class="btn-primary">Route</a>
                           </template>
@@ -431,10 +432,10 @@
                     <p class="muted" x-text="drive.note"></p>
                   </template>
                   <div class="inline-actions">
+                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-copy" aria-label="Ziel kopieren">📋</button>
                     <template x-if="drive.maps_url || drive.coords">
                       <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')">Route öffnen</a>
                     </template>
-                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-copy" aria-label="Ziel kopieren">📋</button>
                   </div>
 
                   <template x-if="drive.stops?.length">
@@ -476,10 +477,10 @@
                       <p class="muted stay-note" x-text="stay.note"></p>
                     </template>
                     <div class="stay-actions">
+                      <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.maps_url || stay.coords">
                         <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')">Route</a>
                       </template>
-                      <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.phone">
                         <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
                       </template>
