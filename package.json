@@ -4,7 +4,8 @@
   "description": "Static travel companion PWA — reads a private Gist and renders offline.",
   "scripts": {
     "dev": "bun --hot dev.ts",
-    "validate": "bun tools/validate.ts"
+    "validate": "bun tools/validate.ts",
+    "icons": "bash tools/gen-icons.sh"
   },
   "devDependencies": {
     "ajv": "^8.18.0",

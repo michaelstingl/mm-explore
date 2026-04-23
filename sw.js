@@ -14,6 +14,9 @@ const SHELL_FILES = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  './icons/favicon-16.png',
+  './icons/favicon-32.png',
+  './icons/icon-source.svg',
   'https://unpkg.com/open-props/open-props.min.css',
   'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js'
 ];
