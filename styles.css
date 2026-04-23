@@ -654,13 +654,23 @@ button.btn-secondary:hover {
 .poi-actions { display: flex; gap: 0.3rem; align-items: center; flex-shrink: 0; }
 
 .poi-link {
-  font-size: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed rgba(60, 47, 38, 0.3);
+  border-radius: 2px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1;
   text-decoration: none;
-  color: var(--color-primary);
-  padding: 0.2rem 0.5rem;
-  transition: transform 0.15s;
+  color: var(--color-text);
+  transition: all 0.15s;
 }
-.poi-link:hover { transform: translateX(3px); }
+.poi-link:hover {
+  border-style: solid;
+  background: var(--color-card);
+}
 
 /* ---------- Modal ---------- */
 .modal-backdrop {
