@@ -75,16 +75,25 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------- Header — masthead ---------- */
+/* ---------- Header — masthead (sticky) ---------- */
 header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--size-3);
   margin-bottom: 2.2rem;
+  padding-top: calc(var(--gutter) * 0.9);
   padding-bottom: 1.1rem;
   border-bottom: 1px solid var(--color-rule);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  /* Extend background under the main padding so nothing shows above */
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
 }
 
 header::after {
@@ -1223,15 +1232,22 @@ header h1 {
    Entdecken — Karte (Leaflet)
    ========================================================================== */
 .discover {
-  /* Nimmt den kompletten Raum zwischen header und tab-bar, Karte randlos */
-  margin: 0 calc(var(--gutter) * -1);
+  /* Edge-to-edge horizontally + pull up so the map visually tucks under
+     the sticky header. */
+  margin: calc(-1.1rem - 1px) calc(var(--gutter) * -1) 0;
+}
+
+/* Drop main's bottom tab-bar allowance so the map fills all the way
+   down and the fixed tab-bar blurs over the last tiles. */
+main.mode-discover {
+  padding-bottom: 0;
 }
 
 .map {
   width: 100%;
-  height: calc(100vh - 11rem - env(safe-area-inset-bottom));
+  /* ~5.5rem header (gutter + h1 + rule) = content above the map */
+  height: calc(100dvh - 5.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   min-height: 360px;
-  border-block: 1px solid var(--color-rule);
   background: #e7dfc9;
 }
 

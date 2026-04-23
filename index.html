@@ -23,7 +23,7 @@
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body x-data="app" x-cloak>
-  <main>
+  <main :class="{ 'mode-discover': mode === 'discover' }">
     <header>
       <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
       <div class="header-actions">
