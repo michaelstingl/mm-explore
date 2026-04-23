@@ -787,52 +787,73 @@ document.addEventListener('alpine:init', () => {
 
       const pinsLatLngs = [];
 
-      // Main route: solid line connecting stays in chronological order.
-      // Candidates (Place.status === 'candidate') get a dashed line to their
-      // nearest stay, signaling "still to be decided".
-      const routePoints = stays
-        .filter(s => (s.coords || placesById[s.place_id]?.coords) && s.check_in)
-        .sort((a, b) => a.check_in.localeCompare(b.check_in))
-        .map(s => s.coords || placesById[s.place_id].coords);
+      // Main route: follow the drives chain chronologically. Match each
+      // drive's from/to string to a Place by name. A drive whose destination
+      // doesn't match any place (e.g. "Kalabrien 2 (TBD)" or "Erlangen") is
+      // a GAP. When a gap sits between two confirmed places AND candidates
+      // exist, fork the route: draw dashed polylines through each candidate
+      // connecting the adjacent confirmed points. Trailing gaps with no
+      // reconnect (returning home) are simply skipped.
+      const drivesSorted = (this.bundle.drives || []).slice()
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      const candidates = places.filter(p => p.status === 'candidate' && p.coords);
+      const normName = (s) => (s || '').toLowerCase().replace(/\s*\(.*?\)\s*/g, '').trim();
+      const slugify = (s) => (s || '').toLowerCase().replace(/\s*\(.*?\)\s*/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const placeLookup = new Map();
+      for (const p of places.filter(q => q.coords)) {
+        placeLookup.set(p.id, p);
+        placeLookup.set(normName(p.name), p);
+        placeLookup.set(slugify(p.name), p);
+      }
+      const findPlaceByRef = (ref) => placeLookup.get(normName(ref)) || placeLookup.get(slugify(ref)) || null;
 
-      if (routePoints.length >= 2) {
-        L.polyline(routePoints, {
-          className: 'mm-route',
-          color: '#2E5266',
-          weight: 3,
-          opacity: 0.75,
-          interactive: false,
-        }).addTo(map);
+      const waypoints = [];
+      if (drivesSorted.length) {
+        const first = findPlaceByRef(drivesSorted[0].from);
+        if (first) waypoints.push({ kind: 'place', place: first });
+      }
+      for (const d of drivesSorted) {
+        const p = findPlaceByRef(d.to);
+        waypoints.push(p ? { kind: 'place', place: p } : { kind: 'gap' });
       }
 
-      const distSq = (a, b) => {
-        const dx = a[0] - b[0], dy = a[1] - b[1];
-        return dx * dx + dy * dy;
-      };
-      const nearestStayCoords = (coords) => {
-        let best = null, bestD = Infinity;
-        for (const s of stays) {
-          const sc = s.coords || placesById[s.place_id]?.coords;
-          if (!sc) continue;
-          const d = distSq(coords, sc);
-          if (d < bestD) { bestD = d; best = sc; }
+      let solidRun = [];
+      const flushSolid = () => {
+        if (solidRun.length >= 2) {
+          L.polyline(solidRun.slice(), {
+            className: 'mm-route',
+            color: '#2E5266',
+            weight: 3,
+            opacity: 0.75,
+            interactive: false,
+          }).addTo(map);
         }
-        return best;
+        solidRun = [];
       };
 
-      places.forEach(place => {
-        if (place.status !== 'candidate' || !place.coords) return;
-        const anchor = nearestStayCoords(place.coords);
-        if (!anchor) return;
-        L.polyline([anchor, place.coords], {
-          className: 'mm-route-candidate',
-          color: '#E8743B',
-          weight: 2,
-          opacity: 0.7,
-          dashArray: '4 6',
-          interactive: false,
-        }).addTo(map);
-      });
+      for (let i = 0; i < waypoints.length; i++) {
+        const w = waypoints[i];
+        if (w.kind === 'place') {
+          solidRun.push(w.place.coords);
+          continue;
+        }
+        const prev = solidRun[solidRun.length - 1];
+        flushSolid();
+        const nextW = waypoints.slice(i + 1).find(x => x.kind === 'place');
+        if (prev && nextW && candidates.length) {
+          for (const cand of candidates) {
+            L.polyline([prev, cand.coords, nextW.place.coords], {
+              className: 'mm-route-candidate',
+              color: '#E8743B',
+              weight: 2.5,
+              opacity: 0.75,
+              dashArray: '4 6',
+              interactive: false,
+            }).addTo(map);
+          }
+        }
+      }
+      flushSolid();
 
       // Stay-Pins (Adria-Blau, kräftig)
       stays.forEach(stay => {
