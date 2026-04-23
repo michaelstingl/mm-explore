@@ -1335,3 +1335,45 @@ header h1 {
   font-size: 0.88rem !important;
   padding: 6px 10px !important;
 }
+
+/* ---------- Drive candidate alternatives (tab row) ---------- */
+.drive-alts {
+  margin-bottom: calc(var(--gutter) * 0.5);
+  padding: 0.5rem 0.7rem 0.55rem;
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 55%, transparent);
+  border-radius: 10px;
+}
+.drive-alts .alt-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 0.35rem;
+}
+.drive-alts .alt-row {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.drive-alts .alt-tab {
+  flex: 1 1 auto;
+  min-width: 5rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out), border-color 0.15s var(--ease-out), transform 0.08s var(--ease-out);
+}
+.drive-alts .alt-tab.active {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}

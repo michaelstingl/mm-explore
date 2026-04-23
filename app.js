@@ -924,6 +924,21 @@ document.addEventListener('alpine:init', () => {
       return this.bundle?.stays?.find(s => s.id === stayId) || null;
     },
 
+    // Drives that share (date, from_place_id) with the given candidate drive.
+    // Used on travel days where the Kal-2 fork leaves the agent pointing at a
+    // single default candidate; the UI offers a tab row to flip between siblings.
+    driveSiblings(driveId) {
+      const d = this.findDrive(driveId);
+      if (!d || d.status !== 'candidate') return [];
+      const siblings = (this.bundle?.drives || []).filter(x =>
+        x.status === 'candidate' &&
+        x.date === d.date &&
+        x.from_place_id &&
+        x.from_place_id === d.from_place_id
+      );
+      return siblings.length > 1 ? siblings : [];
+    },
+
     findPlace(placeId) {
       return this.bundle?.places?.find(p => p.id === placeId) || null;
     },

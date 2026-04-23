@@ -419,6 +419,23 @@
             <!-- During trip: travel day -->
             <template x-if="tripState === 'during' && todayDay?.drive_id">
               <div x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, showDetails: false }">
+                <!-- Candidate alternatives (Kal-2 fork etc.) -->
+                <template x-if="driveSiblings(drive.id).length > 1">
+                  <div class="drive-alts">
+                    <span class="alt-label">Noch nicht entschieden — Alternativen:</span>
+                    <div class="alt-row">
+                      <template x-for="alt in driveSiblings(drive.id)" :key="alt.id">
+                        <button
+                          class="alt-tab"
+                          :class="{ active: alt.id === drive.id }"
+                          @click="drive = alt"
+                          :aria-pressed="alt.id === drive.id"
+                          x-text="alt.to"></button>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
                 <!-- Drive card -->
                 <article class="card drive-card">
                   <h2 x-text="drive.from + ' → ' + drive.to"></h2>
