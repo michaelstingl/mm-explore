@@ -194,6 +194,13 @@
                 <button @click="copyDebugSnapshot()" class="btn-copy">📋</button>
               </div>
             </div>
+            <div class="debug-summary" x-show="build">
+              <div><span class="muted">Version</span> <code x-text="build?.version"></code></div>
+              <div x-show="build?.deployed_at">
+                <span class="muted">Deployed</span>
+                <span x-text="build && new Date(build.deployed_at).toLocaleString(locale)"></span>
+              </div>
+            </div>
             <div x-show="showDebug" class="debug-body">
               <div class="debug-row" x-show="build">
                 <strong>Build</strong>

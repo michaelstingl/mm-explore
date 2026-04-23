@@ -1440,3 +1440,26 @@ main.mode-discover {
   flex: 1 1 auto;
   min-width: 10rem;
 }
+
+/* ---------- Debug summary line (always visible when debug is on) ---------- */
+.debug-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0 0;
+  font-size: 0.82rem;
+  font-family: var(--font-mono-custom);
+}
+.debug-summary .muted {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  margin-right: 0.4em;
+}
+.debug-summary code {
+  font-family: var(--font-mono-custom);
+  font-size: 0.82rem;
+  color: var(--color-text);
+  background: transparent;
+  padding: 0;
+}
