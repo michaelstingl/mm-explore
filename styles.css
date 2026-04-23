@@ -490,12 +490,14 @@ header h1 {
   transform: translateY(-1px);
 }
 
-.btn-secondary {
+.btn-secondary,
+button.btn-secondary {
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-rule);
 }
-.btn-secondary:hover {
+.btn-secondary:hover,
+button.btn-secondary:hover {
   background: var(--color-text);
   color: var(--color-bg);
 }
