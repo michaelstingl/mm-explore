@@ -832,6 +832,9 @@ document.addEventListener('alpine:init', () => {
         }).addTo(map);
       }
 
+      // Layer group for per-place POI cluster — refilled on each place click.
+      this._placePoiLayer = L.layerGroup().addTo(map);
+
       // Stay-Pins (Adria-Blau, kräftig)
       stays.forEach(stay => {
         const c = stay.coords || placesById[stay.place_id]?.coords;
@@ -845,6 +848,7 @@ document.addEventListener('alpine:init', () => {
         const place = placesById[stay.place_id];
         const m = L.marker(c, { icon }).addTo(map);
         m.bindPopup(this._popupHtml(place?.name || stay.name, earliestStayDate(stay.place_id), stay.place_id, true));
+        m.on('click', () => this._showPlacePois(stay.place_id));
         pinsLatLngs.push(c);
       });
 
@@ -862,6 +866,7 @@ document.addEventListener('alpine:init', () => {
         });
         const m = L.marker(place.coords, { icon }).addTo(map);
         m.bindPopup(this._popupHtml(place.name, null, place.id, false));
+        m.on('click', () => this._showPlacePois(place.id));
         pinsLatLngs.push(place.coords);
       });
 
@@ -896,6 +901,41 @@ document.addEventListener('alpine:init', () => {
       this.setMode('discover');
       if (this._mapInited) {
         this.$nextTick(() => setTimeout(() => this._applyPoiFocus(), 50));
+      }
+    },
+
+    // Expand a place's POIs around it on the map. Shows a small emoji pin
+    // per POI (type-based glyph: 🏛️ sight, 🍽️ food, 🏖️ beach…). Tap on a
+    // POI marker = popup with name + note. Clicking a different place
+    // replaces the cluster.
+    _showPlacePois(placeId) {
+      if (!this._map || !this._placePoiLayer || !window.L) return;
+      const L = window.L;
+      const place = this.findPlace(placeId);
+      this._placePoiLayer.clearLayers();
+      if (!place?.pois?.length) return;
+      const coords = [place.coords];
+      for (const poi of place.pois) {
+        if (!poi.coords) continue;
+        const icon = L.divIcon({
+          className: 'mm-pin mm-pin-cluster',
+          html: `<span class="mm-cluster-emoji">${this.poiIcon(poi.type)}</span>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+        const marker = L.marker(poi.coords, { icon }).addTo(this._placePoiLayer);
+        const note = poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : '';
+        marker.bindPopup(`
+          <div class="mm-pop">
+            <div class="mm-pop-title">${this.poiIcon(poi.type)} ${escapeHtml(poi.name || '')}</div>
+            ${note}
+          </div>
+        `);
+        coords.push(poi.coords);
+      }
+      // Fit the map to the cluster so all POIs become visible.
+      if (coords.length > 1) {
+        this._map.fitBounds(coords, { padding: [60, 60], maxZoom: 15, animate: true });
       }
     },
 

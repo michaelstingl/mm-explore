@@ -1407,3 +1407,27 @@ main.mode-discover {
   0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-stamp) 25%, transparent), 0 2px 6px rgba(0,0,0,0.35); }
   50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-stamp) 5%, transparent), 0 2px 6px rgba(0,0,0,0.35); }
 }
+
+/* ---------- POI cluster around a place (tap a place pin to expand) ---------- */
+.mm-pin-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  width: 28px;
+  height: 28px;
+  transition: transform 0.12s var(--ease-out);
+}
+.mm-pin-cluster:hover,
+.mm-pin-cluster:focus-visible {
+  transform: scale(1.15);
+  outline: none;
+}
+.mm-cluster-emoji {
+  font-size: 15px;
+  line-height: 1;
+  filter: saturate(1.1);
+}
