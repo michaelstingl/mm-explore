@@ -1,0 +1,13 @@
+{
+  "name": "mm-explore",
+  "private": true,
+  "description": "Static travel companion PWA — reads a private Gist and renders offline.",
+  "scripts": {
+    "dev": "bun --hot dev.ts",
+    "validate": "bun tools/validate.ts"
+  },
+  "devDependencies": {
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1"
+  }
+}
