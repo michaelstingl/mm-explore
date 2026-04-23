@@ -1015,6 +1015,22 @@ document.addEventListener('alpine:init', () => {
       location.reload();
     },
 
+    // Clear every mm_* localStorage entry (preferences, mode, cached
+    // bundle snapshot, debug log, …). Leaves the Service-Worker tile
+    // cache untouched so you don't have to re-download map imagery.
+    purgeLocalStorage() {
+      if (!confirm('localStorage leeren? (Map-Tiles bleiben erhalten)')) return;
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('mm_')) keys.push(k);
+      }
+      keys.forEach(k => localStorage.removeItem(k));
+      pushLog('init', `purged ${keys.length} localStorage keys`);
+      this.showToast(`${keys.length} Einträge gelöscht`);
+      setTimeout(() => location.reload(), 600);
+    },
+
     // Lookups
     findDrive(driveId) {
       return this.bundle?.drives?.find(d => d.id === driveId) || null;

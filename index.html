@@ -253,6 +253,14 @@
 
         <hr>
 
+        <div class="maintenance">
+          <button @click="purgeLocalStorage()" class="btn-secondary">localStorage leeren</button>
+          <button @click="clearDebugLog()" class="btn-secondary">Debug-Log löschen</button>
+        </div>
+        <p class="muted">Map-Tiles bleiben im Service-Worker-Cache erhalten.</p>
+
+        <hr>
+
         <button @click="resetApp()" class="danger">Reset (alles löschen)</button>
       </section>
     </template>

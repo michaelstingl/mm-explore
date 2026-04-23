@@ -1413,21 +1413,28 @@ main.mode-discover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-card);
-  border: 1px solid var(--color-rule);
-  border-radius: 999px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
   width: 28px;
   height: 28px;
   transition: transform 0.12s var(--ease-out);
 }
 .mm-pin-cluster:hover,
 .mm-pin-cluster:focus-visible {
-  transform: scale(1.15);
+  transform: scale(1.2);
   outline: none;
 }
 .mm-cluster-emoji {
-  font-size: 15px;
+  font-size: 22px;
   line-height: 1;
-  filter: saturate(1.1);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 1px rgba(255, 250, 240, 0.9));
+}
+
+/* ---------- Settings maintenance row (two utility buttons side-by-side) ---------- */
+.maintenance {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.maintenance .btn-secondary {
+  flex: 1 1 auto;
+  min-width: 10rem;
 }
