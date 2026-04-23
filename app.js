@@ -875,12 +875,25 @@ document.addEventListener('alpine:init', () => {
 
       // Delegated click handler for popup buttons
       el.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-open-place]');
-        if (!btn) return;
-        const id = btn.getAttribute('data-open-place');
-        this.selectPlace(id);
-        this.setMode('explore');
-        map.closePopup();
+        const openPlaceBtn = e.target.closest('[data-open-place]');
+        if (openPlaceBtn) {
+          const id = openPlaceBtn.getAttribute('data-open-place');
+          this.selectPlace(id);
+          this.setMode('explore');
+          map.closePopup();
+          return;
+        }
+        const poiActionBtn = e.target.closest('[data-poi-idx]');
+        if (poiActionBtn) {
+          const idx = parseInt(poiActionBtn.getAttribute('data-poi-idx'), 10);
+          const action = poiActionBtn.getAttribute('data-action');
+          const poi = this._clusterPois?.[idx];
+          if (!poi) return;
+          if (action === 'copy') {
+            e.preventDefault();
+            this.copyLocation(poi);
+          }
+        }
       });
 
       setTimeout(() => {
@@ -944,8 +957,11 @@ document.addEventListener('alpine:init', () => {
       this._placePoiLayer.clearLayers();
       if (!place?.pois?.length) return;
       const coords = [place.coords];
-      for (const poi of place.pois) {
-        if (!poi.coords) continue;
+      // Stash POIs so the delegated popup-button handler can look them
+      // up by index — Leaflet's popups are plain HTML, no Alpine scope.
+      this._clusterPois = place.pois;
+      place.pois.forEach((poi, idx) => {
+        if (!poi.coords) return;
         const icon = L.divIcon({
           className: 'mm-pin mm-pin-cluster',
           html: `<span class="mm-cluster-emoji">${this.poiIcon(poi.type)}</span>`,
@@ -954,14 +970,19 @@ document.addEventListener('alpine:init', () => {
         });
         const marker = L.marker(poi.coords, { icon }).addTo(this._placePoiLayer);
         const note = poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : '';
+        const mapsHref = this.mapsUrl(poi, 'nav') || poi.maps_url || '#';
         marker.bindPopup(`
           <div class="mm-pop">
             <div class="mm-pop-title">${this.poiIcon(poi.type)} ${escapeHtml(poi.name || '')}</div>
             ${note}
+            <div class="mm-pop-actions">
+              <button class="action-btn" aria-label="Kopieren" data-poi-idx="${idx}" data-action="copy">📋</button>
+              <a class="action-btn action-btn-primary" aria-label="In Maps-App öffnen" href="${escapeHtml(mapsHref)}" target="_blank">🚙</a>
+            </div>
           </div>
         `);
         coords.push(poi.coords);
-      }
+      });
       // Fit the map to the cluster so all POIs become visible.
       if (coords.length > 1) {
         this._map.fitBounds(coords, { padding: [60, 60], maxZoom: 15, animate: true });

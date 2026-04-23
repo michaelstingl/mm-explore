@@ -1591,3 +1591,15 @@ main.mode-discover {
   border-radius: 3px;
   justify-self: start;
 }
+
+/* ---------- POI popup actions (on-map cluster popups) ---------- */
+.mm-pop-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 8px;
+}
+.mm-pop-actions .action-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 1.1rem;
+}
