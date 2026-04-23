@@ -221,7 +221,7 @@ document.addEventListener('alpine:init', () => {
     // Lifecycle
     async init() {
       pushLog('init', 'app init', {
-        ua: navigator.userAgent.substring(0, 60),
+        ua: navigator.userAgent,
         standalone: window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches,
         locale: navigator.language,
         url: location.href
@@ -305,7 +305,7 @@ document.addEventListener('alpine:init', () => {
         lastUpdated: this.lastUpdated,
         bundleAge: this.bundleAgeLabel,
         offline: this.offline,
-        ua: navigator.userAgent.substring(0, 80),
+        ua: navigator.userAgent,
         isIOS: this.isIOS,
         isStandalone: this.isStandalone,
         serviceWorker: 'serviceWorker' in navigator ? 'available' : 'n/a'
