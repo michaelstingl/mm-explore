@@ -787,6 +787,53 @@ document.addEventListener('alpine:init', () => {
 
       const pinsLatLngs = [];
 
+      // Main route: solid line connecting stays in chronological order.
+      // Candidates (Place.status === 'candidate') get a dashed line to their
+      // nearest stay, signaling "still to be decided".
+      const routePoints = stays
+        .filter(s => (s.coords || placesById[s.place_id]?.coords) && s.check_in)
+        .sort((a, b) => a.check_in.localeCompare(b.check_in))
+        .map(s => s.coords || placesById[s.place_id].coords);
+
+      if (routePoints.length >= 2) {
+        L.polyline(routePoints, {
+          className: 'mm-route',
+          color: '#2E5266',
+          weight: 3,
+          opacity: 0.75,
+          interactive: false,
+        }).addTo(map);
+      }
+
+      const distSq = (a, b) => {
+        const dx = a[0] - b[0], dy = a[1] - b[1];
+        return dx * dx + dy * dy;
+      };
+      const nearestStayCoords = (coords) => {
+        let best = null, bestD = Infinity;
+        for (const s of stays) {
+          const sc = s.coords || placesById[s.place_id]?.coords;
+          if (!sc) continue;
+          const d = distSq(coords, sc);
+          if (d < bestD) { bestD = d; best = sc; }
+        }
+        return best;
+      };
+
+      places.forEach(place => {
+        if (place.status !== 'candidate' || !place.coords) return;
+        const anchor = nearestStayCoords(place.coords);
+        if (!anchor) return;
+        L.polyline([anchor, place.coords], {
+          className: 'mm-route-candidate',
+          color: '#E8743B',
+          weight: 2,
+          opacity: 0.7,
+          dashArray: '4 6',
+          interactive: false,
+        }).addTo(map);
+      });
+
       // Stay-Pins (Adria-Blau, kräftig)
       stays.forEach(stay => {
         const c = stay.coords || placesById[stay.place_id]?.coords;
