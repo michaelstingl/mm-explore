@@ -1378,3 +1378,16 @@ header h1 {
   border-color: var(--color-primary);
   font-weight: 600;
 }
+
+/* ---------- POI highlight pin (used by showPoiOnMap) ---------- */
+.mm-pin-poi .mm-pin-dot {
+  background: var(--color-stamp);
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-stamp) 25%, transparent), 0 2px 6px rgba(0,0,0,0.35);
+  animation: mm-poi-pulse 1.4s var(--ease-out) 3;
+}
+@keyframes mm-poi-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-stamp) 25%, transparent), 0 2px 6px rgba(0,0,0,0.35); }
+  50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-stamp) 5%, transparent), 0 2px 6px rgba(0,0,0,0.35); }
+}

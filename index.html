@@ -359,8 +359,11 @@
                               </div>
                               <div class="poi-actions">
                                 <button @click="copyLocation(poi)" class="btn-copy" aria-label="Ort kopieren">📋</button>
+                                <template x-if="poi.coords">
+                                  <button @click="showPoiOnMap(poi)" class="btn-copy" aria-label="Auf Karte zeigen">🗺️</button>
+                                </template>
                                 <template x-if="poi.maps_url || poi.coords">
-                                  <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps öffnen" @click="logMapsClick(poi, 'view')">→</a>
+                                  <a :href="mapsUrl(poi, 'nav') || poi.maps_url" target="_blank" class="poi-link" aria-label="In Maps-App öffnen" @click="logMapsClick(poi, 'nav')">🚙</a>
                                 </template>
                               </div>
                             </li>

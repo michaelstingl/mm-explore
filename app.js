@@ -864,7 +864,7 @@ document.addEventListener('alpine:init', () => {
         pinsLatLngs.push(place.coords);
       });
 
-      if (pinsLatLngs.length) {
+      if (pinsLatLngs.length && !this._pendingPoiFocus) {
         map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
       }
 
@@ -878,7 +878,45 @@ document.addEventListener('alpine:init', () => {
         map.closePopup();
       });
 
-      setTimeout(() => map.invalidateSize(), 100);
+      setTimeout(() => {
+        map.invalidateSize();
+        if (this._pendingPoiFocus) this._applyPoiFocus();
+      }, 100);
+    },
+
+    // Jump to the Entdecken tab and highlight a specific POI on the map.
+    // Drops a temporary pulse marker and centers at zoom ~15. When the map
+    // isn't inited yet, we stash the focus request — initMap consumes it
+    // after fitBounds so the POI wins.
+    showPoiOnMap(poi) {
+      if (!poi?.coords) return;
+      pushLog('user', `poi → map: ${poi.name}`);
+      this._pendingPoiFocus = poi;
+      this.setMode('discover');
+      if (this._mapInited) {
+        this.$nextTick(() => setTimeout(() => this._applyPoiFocus(), 50));
+      }
+    },
+
+    _applyPoiFocus() {
+      const poi = this._pendingPoiFocus;
+      if (!poi || !this._map || !window.L) return;
+      this._pendingPoiFocus = null;
+      const L = window.L;
+      const map = this._map;
+      map.invalidateSize();
+      if (this._poiHighlight) map.removeLayer(this._poiHighlight);
+      const icon = L.divIcon({
+        className: 'mm-pin mm-pin-poi',
+        html: `<span class="mm-pin-dot"></span>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      this._poiHighlight = L.marker(poi.coords, { icon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindPopup(`<div class="mm-pop"><div class="mm-pop-title">${escapeHtml(poi.name || '')}</div>${poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : ''}</div>`)
+        .openPopup();
+      map.setView(poi.coords, 15, { animate: false });
     },
 
     _popupHtml(name, isoDate, placeId, isStay) {
