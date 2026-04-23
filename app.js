@@ -197,6 +197,7 @@ document.addEventListener('alpine:init', () => {
     gistUrl: '',
     lastUpdated: null,
     showDayPicker: false,
+    stayDetails: null,
     localeOverride: '',
     localeOptions: LOCALE_OPTIONS,
     mapsApp: 'auto',

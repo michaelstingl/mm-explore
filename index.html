@@ -255,7 +255,7 @@
                   <div>
                     <!-- Stays at this place -->
                     <template x-for="stay in staysAtPlace(selectedPlace.id)" :key="stay.id">
-                      <article class="card stay-card" x-data="{ showDetails: false }">
+                      <article class="card stay-card">
                         <h3 x-text="stay.name"></h3>
                         <p class="muted" x-text="stay.address"></p>
                         <template x-if="stay.check_in">
@@ -271,42 +271,14 @@
                           <p class="muted stay-note" x-text="stay.note"></p>
                         </template>
                         <div class="stay-actions">
-                          <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
+                          <button @click="copyLocation(stay)" class="btn-secondary"><span aria-hidden="true">📋</span> Kopieren</button>
                           <template x-if="stay.maps_url">
-                            <a :href="stay.maps_url" target="_blank" class="btn-primary">Route</a>
+                            <a :href="stay.maps_url" target="_blank" class="btn-primary"><span aria-hidden="true">🚙</span> Route</a>
                           </template>
                           <template x-if="stay.phone">
                             <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
                           </template>
-                          <button @click="showDetails = true" class="btn-secondary">Details</button>
-                        </div>
-
-                        <div x-show="showDetails" class="modal-backdrop" @click="showDetails = false" x-cloak>
-                          <div class="modal" @click.stop>
-                            <h3 x-text="stay.name"></h3>
-                            <dl>
-                              <div class="modal-row"><dt>Adresse</dt><dd x-text="stay.address"></dd></div>
-                              <template x-if="stay.phone">
-                                <div class="modal-row"><dt>Telefon</dt><dd x-text="stay.phone"></dd></div>
-                              </template>
-                              <template x-if="stay.check_in">
-                                <div class="modal-row"><dt>Check-in</dt><dd x-text="formatCheckin(stay.check_in)"></dd></div>
-                              </template>
-                              <template x-if="stay.check_out">
-                                <div class="modal-row"><dt>Check-out</dt><dd x-text="formatCheckin(stay.check_out)"></dd></div>
-                              </template>
-                              <template x-if="stay.booking?.provider">
-                                <div class="modal-row"><dt>Provider</dt><dd x-text="stay.booking.provider"></dd></div>
-                              </template>
-                              <template x-if="stay.booking?.id">
-                                <div class="modal-row"><dt>Buchung</dt><dd x-text="stay.booking.id"></dd></div>
-                              </template>
-                              <template x-if="stay.booking?.pin">
-                                <div class="modal-row"><dt>PIN</dt><dd class="pin" x-text="stay.booking.pin"></dd></div>
-                              </template>
-                            </dl>
-                            <button @click="showDetails = false" class="btn-primary">Schließen</button>
-                          </div>
+                          <button @click="stayDetails = stay" class="btn-secondary"><span aria-hidden="true">📄</span> Details</button>
                         </div>
                       </article>
                     </template>
@@ -398,7 +370,7 @@
             <!-- During trip: travel day -->
             <template x-if="tripState === 'during' && todayDay?.drive_id">
               <div
-                x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, showDetails: false }"
+                x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null }"
                 x-init="$watch('todayDay', d => { drive = findDrive(d?.drive_id); stay = d?.stay_id ? findStay(d.stay_id) : null; })">
                 <!-- Candidate alternatives (Kal-2 fork etc.) -->
                 <template x-if="driveSiblings(drive.id).length > 1">
@@ -432,9 +404,9 @@
                     <p class="muted" x-text="drive.note"></p>
                   </template>
                   <div class="inline-actions">
-                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-copy" aria-label="Ziel kopieren">📋</button>
+                    <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="btn-secondary"><span aria-hidden="true">📋</span> Kopieren</button>
                     <template x-if="drive.maps_url || drive.coords">
-                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')">Route öffnen</a>
+                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(drive, 'nav')"><span aria-hidden="true">🚙</span> Route öffnen</a>
                     </template>
                   </div>
 
@@ -479,42 +451,12 @@
                     <div class="stay-actions">
                       <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.maps_url || stay.coords">
-                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')">Route</a>
+                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="btn-primary" @click="logMapsClick(stay, 'nav')"><span aria-hidden="true">🚙</span> Route</a>
                       </template>
                       <template x-if="stay.phone">
                         <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
                       </template>
-                      <button @click="showDetails = true" class="btn-secondary">Details</button>
-                    </div>
-
-                    <!-- Detail-Modal -->
-                    <div x-show="showDetails" class="modal-backdrop" @click="showDetails = false" x-cloak>
-                      <div class="modal" @click.stop>
-                        <h3 x-text="stay.name"></h3>
-                        <dl>
-                          <dt>Adresse</dt>
-                          <dd x-text="stay.address"></dd>
-                          <template x-if="stay.phone">
-                            <div class="modal-row"><dt>Telefon</dt><dd x-text="stay.phone"></dd></div>
-                          </template>
-                          <template x-if="stay.check_in">
-                            <div class="modal-row"><dt>Check-in</dt><dd x-text="formatCheckin(stay.check_in)"></dd></div>
-                          </template>
-                          <template x-if="stay.check_out">
-                            <div class="modal-row"><dt>Check-out</dt><dd x-text="formatCheckin(stay.check_out)"></dd></div>
-                          </template>
-                          <template x-if="stay.booking?.provider">
-                            <div class="modal-row"><dt>Provider</dt><dd x-text="stay.booking.provider"></dd></div>
-                          </template>
-                          <template x-if="stay.booking?.id">
-                            <div class="modal-row"><dt>Buchung</dt><dd x-text="stay.booking.id"></dd></div>
-                          </template>
-                          <template x-if="stay.booking?.pin">
-                            <div class="modal-row"><dt>PIN</dt><dd class="pin" x-text="stay.booking.pin"></dd></div>
-                          </template>
-                        </dl>
-                        <button @click="showDetails = false" class="btn-primary">Schließen</button>
-                      </div>
+                      <button @click="stayDetails = stay" class="btn-secondary">📄 Details</button>
                     </div>
                   </article>
                 </template>
@@ -584,6 +526,43 @@
       </div>
       <div class="sheet-footer">
         <button @click="resetDate(); showDayPicker = false" class="btn-secondary">Zurück zu heute</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stay details sheet — same pattern as the day picker, reused for
+       consistency and guaranteed stacking above header + tab bar. -->
+  <div x-show="stayDetails" class="sheet-backdrop" @click="stayDetails = null" x-cloak>
+    <div class="sheet sheet-compact" @click.stop>
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 x-text="stayDetails?.name"></h2>
+        <button @click="stayDetails = null" class="icon-btn" aria-label="Schließen">✕</button>
+      </div>
+      <div class="sheet-body">
+        <dl class="stay-detail-dl">
+          <template x-if="stayDetails?.address">
+            <div class="modal-row"><dt>Adresse</dt><dd x-text="stayDetails.address"></dd></div>
+          </template>
+          <template x-if="stayDetails?.phone">
+            <div class="modal-row"><dt>Telefon</dt><dd><a :href="'tel:' + stayDetails.phone" x-text="stayDetails.phone"></a></dd></div>
+          </template>
+          <template x-if="stayDetails?.check_in">
+            <div class="modal-row"><dt>Check-in</dt><dd x-text="formatCheckin(stayDetails.check_in)"></dd></div>
+          </template>
+          <template x-if="stayDetails?.check_out">
+            <div class="modal-row"><dt>Check-out</dt><dd x-text="formatCheckin(stayDetails.check_out)"></dd></div>
+          </template>
+          <template x-if="stayDetails?.booking?.provider">
+            <div class="modal-row"><dt>Provider</dt><dd x-text="stayDetails.booking.provider"></dd></div>
+          </template>
+          <template x-if="stayDetails?.booking?.id">
+            <div class="modal-row"><dt>Buchung</dt><dd x-text="stayDetails.booking.id"></dd></div>
+          </template>
+          <template x-if="stayDetails?.booking?.pin">
+            <div class="modal-row"><dt>PIN</dt><dd class="pin" x-text="stayDetails.booking.pin"></dd></div>
+          </template>
+        </dl>
       </div>
     </div>
   </div>
