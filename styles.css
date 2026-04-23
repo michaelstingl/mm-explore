@@ -181,7 +181,8 @@ header h1 {
   margin: 0 auto;
   max-width: var(--max-width);
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
   gap: 0.25rem;
   padding: 0.4rem var(--gutter);
   padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
