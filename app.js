@@ -870,9 +870,10 @@ document.addEventListener('alpine:init', () => {
         pinsLatLngs.push(place.coords);
       });
 
-      if (pinsLatLngs.length && !this._pendingPoiFocus) {
-        map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
-      }
+      // fitBounds is deferred below — at synchronous init the container
+      // size may still be 0×0, which makes Leaflet compute an absurd zoom
+      // centered on the pins' geometric midpoint (Rimini-ish, for this
+      // trip). Do the fit after invalidateSize measured the real size.
 
       // Delegated click handler for popup buttons
       el.addEventListener('click', (e) => {
@@ -886,7 +887,11 @@ document.addEventListener('alpine:init', () => {
 
       setTimeout(() => {
         map.invalidateSize();
-        if (this._pendingPoiFocus) this._applyPoiFocus();
+        if (this._pendingPoiFocus) {
+          this._applyPoiFocus();
+        } else if (pinsLatLngs.length) {
+          map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
+        }
       }, 100);
     },
 
