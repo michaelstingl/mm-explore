@@ -733,6 +733,7 @@ document.addEventListener('alpine:init', () => {
       if (override === 'transit' || override === 'explore' || override === 'discover') {
         this.mode = override;
         this.manualOverride = true;
+        this._ensureMapReady();
         return;
       }
       const day = this.todayDay;
@@ -750,16 +751,21 @@ document.addEventListener('alpine:init', () => {
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
-      if (m === 'discover') {
-        // Lazy init on first visit: container must be visible (non-zero size)
-        // for Leaflet's fitBounds to compute correct coordinates.
-        this.$nextTick(() => {
-          const el = document.getElementById('map');
-          if (!el) return;
-          if (!this._mapInited) this.initMap(el);
-          else setTimeout(() => this._map?.invalidateSize(), 50);
-        });
-      }
+      this._ensureMapReady();
+    },
+
+    // Lazy-init the Leaflet instance (or invalidateSize if already inited)
+    // whenever the user lands in discover mode — triggered both from an
+    // explicit setMode click and from pickDefaultMode restoring the tab
+    // across page reloads.
+    _ensureMapReady() {
+      if (this.mode !== 'discover') return;
+      this.$nextTick(() => {
+        const el = document.getElementById('map');
+        if (!el) return;
+        if (!this._mapInited) this.initMap(el);
+        else setTimeout(() => this._map?.invalidateSize(), 50);
+      });
     },
 
     initMap(el) {
