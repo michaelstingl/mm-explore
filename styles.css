@@ -65,6 +65,8 @@ main {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: var(--gutter);
+  /* Leave room for the sticky bottom tab bar */
+  padding-bottom: calc(var(--gutter) + 5.5rem + env(safe-area-inset-bottom));
   animation: page-in 0.6s var(--ease-out) both;
 }
 
@@ -169,44 +171,76 @@ header h1 {
 }
 .icon-btn:hover { opacity: 1; }
 
-/* ---------- Mode toggle — editorial tabs ---------- */
-.mode-toggle {
-  display: flex;
-  gap: 0;
-  margin-bottom: 2rem;
-  border-bottom: 1px dotted var(--color-rule);
+/* ---------- Bottom tab bar (app chrome) ---------- */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  margin: 0 auto;
+  max-width: var(--max-width);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25rem;
+  padding: 0.4rem var(--gutter);
+  padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-top: 1px solid var(--color-rule);
 }
 
-.mode-toggle button {
-  flex: 1;
+.tab-bar .tab {
   background: none;
-  border: none;
-  padding: 0.9rem 0;
+  border: 0;
+  padding: 0.45rem 0.5rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
   color: var(--color-ink-muted);
-  position: relative;
-  transition: color 0.2s;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out), transform 0.08s var(--ease-out);
 }
 
-.mode-toggle button.active {
-  color: var(--color-text);
+.tab-bar .tab-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: grayscale(0.55);
+  transform: translateY(0);
+  transition: filter 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+}
+
+.tab-bar .tab.active {
+  color: var(--color-primary);
   font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
-.mode-toggle button.active::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -1px;
-  transform: translateX(-50%);
-  width: 42px;
-  height: 3px;
-  background: var(--color-primary);
-  border-radius: 2px;
+.tab-bar .tab.active .tab-icon {
+  filter: grayscale(0);
+  transform: translateY(-1px);
+}
+
+.tab-bar .tab:active {
+  transform: scale(0.96);
+}
+
+/* ---------- Tap feedback — press-to-compress on interactive elements ---------- */
+@media (hover: none) {
+  button:active:not(:disabled),
+  .btn-primary:active,
+  .btn-secondary:active,
+  .card-link:active,
+  .icon-btn:active {
+    transform: scale(0.97);
+    transition: transform 0.08s var(--ease-out);
+  }
 }
 
 /* ---------- Section label — small caps, italic ---------- */

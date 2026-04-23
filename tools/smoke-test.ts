@@ -151,10 +151,8 @@ async function main() {
       await page.waitForTimeout(300);
     }
 
-    // 3. Mode toggle
-    const mode = page
-      .getByRole('button', { name: /Erleben|Unterwegs/ })
-      .first();
+    // 3. Mode toggle — click "Erleben" to flip away from default transit
+    const mode = page.getByRole('button', { name: /Erleben/ }).first();
     let modeOk = false;
     if (await mode.count()) {
       await mode.click();

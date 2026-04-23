@@ -20,8 +20,8 @@
   <script defer src="./app.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body>
-  <main x-data="app" x-cloak>
+<body x-data="app" x-cloak>
+  <main>
     <header>
       <h1 x-text="bundle?.trip?.title || 'M+M Explore'"></h1>
       <div class="header-actions">
@@ -262,11 +262,6 @@
     <template x-if="view === 'main' && bundle">
       <section>
         <p x-show="offline" class="banner-offline">Offline — Daten vom letzten Laden</p>
-
-        <nav class="mode-toggle">
-          <button :class="mode === 'transit' ? 'active' : ''" @click="setMode('transit')">Unterwegs 🚗</button>
-          <button :class="mode === 'explore' ? 'active' : ''" @click="setMode('explore')">Erleben 🏖️</button>
-        </nav>
 
         <!-- Erleben-Modus -->
         <template x-if="mode === 'explore'">
@@ -536,5 +531,17 @@
       </section>
     </template>
   </main>
+
+  <!-- Bottom tab bar (app chrome) -->
+  <nav class="tab-bar" x-show="view === 'main' && bundle" x-cloak aria-label="Modus">
+    <button class="tab" :class="{ active: mode === 'transit' }" @click="setMode('transit')" :aria-pressed="mode === 'transit'">
+      <span class="tab-icon" aria-hidden="true">🚗</span>
+      <span class="tab-label">Unterwegs</span>
+    </button>
+    <button class="tab" :class="{ active: mode === 'explore' }" @click="setMode('explore')" :aria-pressed="mode === 'explore'">
+      <span class="tab-icon" aria-hidden="true">🏖️</span>
+      <span class="tab-label">Erleben</span>
+    </button>
+  </nav>
 </body>
 </html>
