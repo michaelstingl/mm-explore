@@ -1039,7 +1039,8 @@ header h1 {
 /* ---------- Toast ---------- */
 .toast {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+  /* Sits above the bottom tab bar (~5.5rem) */
+  bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
   left: 50%;
   transform: translateX(-50%);
   background: var(--color-text);

@@ -45,9 +45,6 @@
       </div>
     </header>
 
-    <!-- Toast -->
-    <div class="toast" x-show="toast.visible" x-transition.opacity x-text="toast.message" x-cloak></div>
-
     <!-- Update-verfügbar-Banner -->
     <div class="update-banner" x-show="updateAvailable" x-cloak>
       <span>Update verfügbar</span>
@@ -540,6 +537,9 @@
       </section>
     </template>
   </main>
+
+  <!-- Toast (outside <main> so position:fixed anchors to viewport, not to the animated main container) -->
+  <div class="toast" x-show="toast.visible" x-transition.opacity x-text="toast.message" x-cloak></div>
 
   <!-- Bottom tab bar (app chrome) -->
   <nav class="tab-bar" x-show="view === 'main' && bundle" x-cloak aria-label="Modus">
