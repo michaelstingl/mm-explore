@@ -12,7 +12,9 @@ In dieser Reihenfolge, bevor du auf technische Fragen antwortest:
 
 ## Was ist das hier
 
-Statische Travel-Companion-PWA. Vanilla HTML + Alpine.js + Open Props. Kein Build, kein Framework, kein Backend. Liest ein `travel.json` aus einem privaten Gist, cached offline via Service Worker. Installierbar aus Safari auf Home-Bildschirm.
+Statische Travel-Companion-PWA. Vanilla HTML + Alpine.js + Open Props + Leaflet (CartoDB Voyager Tiles). Kein Build, kein Framework, kein Backend. Liest ein `travel.json` aus einem privaten Gist, cached offline via Service Worker. Installierbar aus Safari auf Home-Bildschirm.
+
+Drei Modi via Bottom-Tab-Bar: **Unterwegs** (Drive-Card inkl. Candidate-Drive-Alternatives-Tabs), **Erleben** (Place-Picker + POI-Liste mit 📋/🗺️/🚙-Actions), **Entdecken** (Leaflet-Karte mit Route-Polyline, Candidate-Drives dashed, Place-POI-Cluster beim Tap).
 
 Live: https://michaelstingl.github.io/mm-explore/
 
@@ -75,6 +77,11 @@ IDs sind kebab-case, Daten ISO (`YYYY-MM-DD` oder `YYYY-MM-DDTHH:MM`). Coords al
 - **`defer`-geladene Module (`type="module"`) laufen nach Alpine.** `alpine:init`-Listener verpassen das Event. `app.js` muss als klassisches `<script defer>` VOR dem Alpine-Script geladen werden.
 - **Gist Raw hat 5 Min CDN-TTL.** Updates im Gist brauchen bis zu 5 Minuten bis der PWA-Fetch sie sieht. Kein Bug.
 - **Safari SSE ist unzuverlässig.** Dev-Server nutzt WebSocket, nicht EventSource.
+- **`<main>` darf keinen `transform` in Animationen haben.** Ein Transform auf `<main>` macht es zum Containing Block für alle `position: fixed`-Nachfahren — Tab-Bar, Toast, Day-Picker-Sheet, Modals landen dann relativ zu `<main>` statt zum Viewport und wirken „verschwunden" bei Scroll. `@keyframes page-in` nur mit `opacity`, nie `translateY`.
+- **Alpine `x-data`-Scope evaluiert Init-Expressions nur einmal.** Wenn eine lokale Variable von reaktiven Root-State abhängt (z.B. `drive: findDrive(todayDay.drive_id)`), brauchst du `x-init="$watch('todayDay', d => { drive = findDrive(d?.drive_id); })"` — sonst bleibt der Wert bei Tageswechsel stale.
+- **Leaflet `fitBounds` auf 0×0-Container verrechnet sich** und zoomt eng auf den geometrischen Mittelpunkt aller Pins (für diese Reise: Adria vor Rimini). Erst `invalidateSize` dann `fitBounds`, beide in einem `setTimeout(…, 100)`.
+- **Leaflet-Map darf nicht per `x-if` auf-/abgebaut werden** — Leaflet hält intern eine Referenz auf den DOM-Container; nach Remount ist die Map leer. Stattdessen `x-show` + Lazy-Init beim ersten `setMode('discover')`.
+- **`button.btn-secondary` überstimmt `.btn-secondary`** per Spezifität. Wenn du einen Border willst, Selektoren paaren: `.btn-secondary, button.btn-secondary { … }`. Gilt analog für Link-Varianten.
 
 ## Debug
 

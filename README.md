@@ -232,16 +232,20 @@ Geplant (post-MVP):
 
 - `tools/build-bundle.ts` scannt Markdown-Dateien mit YAML-Frontmatter und PATCHt den Gist automatisch
 - Krusty (persönlicher Signal-Bot) bekommt einen Gist-Skill und kann per DM editieren
-- Optionaler Karten-View mit Leaflet + GPX-Overlay
+
+Im MVP bereits enthalten (während des Launch-Sprints eingezogen):
+
+- **Entdecken-Tab** mit Leaflet-Karte, CartoDB-Voyager-Tiles, Route-Polyline (confirmed solid, candidate dashed), Place-POI-Cluster beim Tap
+- **Drive-Candidate-Forks** via `Drive.status: 'candidate'` + `Drive.from_place_id`/`to_place_id` — App rendert Alternativen-Tabs im Unterwegs-Tag + parallele Fork-Pfade auf der Karte
 
 ---
 
 ## Tech-Stack
 
 - **HTML** — eine Datei, Alpine.js-Templates via `x-data` / `x-for` / `x-if`
-- **JS** — Alpine.js 3.x via CDN (`<script defer>`), eigener Code in `app.js`
+- **JS** — Alpine.js 3.x via CDN (`<script defer>`), Leaflet 1.9.4 via CDN für die Entdecken-Karte, eigener Code in `app.js`
 - **CSS** — Open Props als Token-Basis, Fraunces + Newsreader als Display-Paar, hand-getunete Komponenten in `styles.css`
-- **Service Worker** — vanilla, cache-first für Shell, network-first für Gist-Raw, dynamisches Manifest-Rewrite
+- **Service Worker** — vanilla, cache-first für Shell, network-first für Gist-Raw, dedizierter Tile-Cache (version-agnostisch, überlebt Deploys), dynamisches Manifest-Rewrite
 - **Persistence** — `localStorage` (Gist-URL, Bundle-Cache, Settings, Debug-Log)
 - **Dev-Server** — Bun mit `--hot`, File-Watcher und WebSocket-Live-Reload in ~80 Zeilen
 - **Deploy** — GitHub Actions → Pages (Source: Actions)
@@ -255,7 +259,7 @@ Keine npm-Laufzeit-Deps, kein Build-Step, kein Bundler. Die einzigen externen Re
 
 - **Kein Write-Pfad aus der App** — read-only, strukturell
 - **Kein Multi-Trip-Support in v1** — ein Gist = eine Reise. Trip-Wechsel bedeutet neue Gist-URL
-- **Kein Mapping/GPX** in v1 — kommt später optional mit Leaflet
+- **Kein GPX-Overlay / Route-Geometry** — Karte rendert nur Luftlinie zwischen Waypoints, keine dekodierten Google-Polylines (post-trip Upgrade)
 - **Keine native Navigation-Integration** für VW We Connect — es gibt kein öffentliches URL-Schema, Apple Maps' "An Fahrzeug senden" unterstützt VW nicht
 
 ---
