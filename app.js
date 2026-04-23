@@ -984,7 +984,7 @@ document.addEventListener('alpine:init', () => {
             <div class="mm-pop-actions">
               <button class="action-btn" aria-label="Kopieren" data-poi-idx="${idx}" data-action="copy">📋</button>
               <button class="action-btn" aria-label="In Erleben öffnen" data-poi-idx="${idx}" data-action="erleben">🏖️</button>
-              <a class="action-btn action-btn-primary" aria-label="In Maps-App öffnen" href="${escapeHtml(mapsHref)}" target="_blank">🚙</a>
+              <a class="action-btn" aria-label="In Maps-App öffnen" href="${escapeHtml(mapsHref)}" target="_blank">🚙</a>
             </div>
           </div>
         `);

@@ -539,14 +539,15 @@ button.btn-secondary:hover {
    (stay cards, drive cards, POI rows, stop rows, cluster header, etc).
    Square, 44×44 touch target, icon-only (label via aria-label).
    action-btn-primary = same shape, orange fill for the main CTA. ---------- */
-.action-btn {
+.action-btn,
+.action-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
   background: transparent;
-  border: 1px solid var(--color-rule);
+  border: 1px dashed rgba(60, 47, 38, 0.4);
   border-radius: 4px;
   padding: 0;
   cursor: pointer;
@@ -554,16 +555,15 @@ button.btn-secondary:hover {
   line-height: 1;
   color: var(--color-text);
   text-decoration: none;
-  transition: background 0.15s var(--ease-out), transform 0.08s var(--ease-out);
+  transition: background 0.15s var(--ease-out), border-style 0.15s var(--ease-out), transform 0.08s var(--ease-out);
 }
-.action-btn:hover { background: var(--color-card); }
-.action-btn:active { transform: scale(0.94); }
-.action-btn-primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-bg);
+.action-btn:hover,
+.action-btn-primary:hover {
+  border-style: solid;
+  background: var(--color-card);
 }
-.action-btn-primary:hover { background: var(--color-stamp); border-color: var(--color-stamp); }
+.action-btn:active,
+.action-btn-primary:active { transform: scale(0.94); }
 
 .inline-actions {
   display: flex;
