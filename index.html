@@ -275,7 +275,7 @@
                             <a :href="stay.maps_url" target="_blank" class="btn-primary">Route</a>
                           </template>
                           <template x-if="stay.phone">
-                            <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>
+                            <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
                           </template>
                           <button @click="showDetails = true" class="btn-secondary">Details</button>
                         </div>
@@ -481,7 +481,7 @@
                       </template>
                       <button @click="copyLocation(stay)" class="btn-secondary" aria-label="Adresse kopieren">📋</button>
                       <template x-if="stay.phone">
-                        <a :href="'tel:' + stay.phone" class="btn-secondary">Anrufen</a>
+                        <a :href="'tel:' + stay.phone" class="btn-secondary"><span aria-hidden="true">📞</span> Anrufen</a>
                       </template>
                       <button @click="showDetails = true" class="btn-secondary">Details</button>
                     </div>
