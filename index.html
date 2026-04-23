@@ -365,9 +365,9 @@
                           <h3 x-text="'Orte in ' + selectedPlace.name"></h3>
                           <button
                             @click="showPlaceOnMap(selectedPlace)"
-                            class="btn-copy"
+                            class="btn-copy cluster-shortcut"
                             :aria-label="'Alle Orte in ' + selectedPlace.name + ' auf Karte'">
-                            🗺️ Cluster
+                            <span aria-hidden="true">🗺️</span> Alle
                           </button>
                         </div>
                         <ul class="poi-list">
@@ -444,7 +444,9 @@
 
             <!-- During trip: travel day -->
             <template x-if="tripState === 'during' && todayDay?.drive_id">
-              <div x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, showDetails: false }">
+              <div
+                x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, showDetails: false }"
+                x-init="$watch('todayDay', d => { drive = findDrive(d?.drive_id); stay = d?.stay_id ? findStay(d.stay_id) : null; })">
                 <!-- Candidate alternatives (Kal-2 fork etc.) -->
                 <template x-if="driveSiblings(drive.id).length > 1">
                   <div class="drive-alts">
