@@ -406,14 +406,23 @@ header h1 {
 .stop-actions { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
 
 .stop-link {
-  font-size: 1.4rem;
-  text-decoration: none;
-  color: var(--color-primary);
-  padding: 0.2rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed rgba(60, 47, 38, 0.3);
+  border-radius: 2px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.9rem;
   line-height: 1;
-  transition: transform 0.15s var(--ease-out);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: all 0.15s var(--ease-out);
 }
-.stop-link:hover { transform: translateX(3px); }
+.stop-link:hover {
+  border-style: solid;
+  background: var(--color-card);
+}
 
 /* ---------- Stay card ---------- */
 .stay-card {

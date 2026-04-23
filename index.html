@@ -453,7 +453,7 @@
                             <div class="stop-actions">
                               <button @click="copyLocation(stop)" class="btn-copy" aria-label="Stopp kopieren">📋</button>
                               <template x-if="stop.maps_url || stop.coords">
-                                <a :href="mapsUrl(stop, 'view') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps öffnen" @click="logMapsClick(stop, 'view')">→</a>
+                                <a :href="mapsUrl(stop, 'nav') || stop.maps_url" target="_blank" class="stop-link" aria-label="In Maps-App öffnen" @click="logMapsClick(stop, 'nav')">🚙</a>
                               </template>
                             </div>
                           </li>
