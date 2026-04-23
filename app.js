@@ -766,6 +766,13 @@ document.addEventListener('alpine:init', () => {
       this.$nextTick(() => {
         const el = document.getElementById('map');
         if (!el) return;
+        // If the old map's container was detached (Settings view unmounted
+        // the view-main template and Alpine remounted a fresh #map), our
+        // Leaflet instance points at a torn-down DOM node. Tear it down
+        // and re-init against the new element.
+        if (this._mapInited && this._map && this._map.getContainer() !== el) {
+          this._destroyMap();
+        }
         if (!this._mapInited) this.initMap(el);
         else setTimeout(() => this._map?.invalidateSize(), 50);
       });
