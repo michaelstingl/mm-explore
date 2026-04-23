@@ -248,6 +248,12 @@ document.addEventListener('alpine:init', () => {
     },
 
     async loadBuildInfo() {
+      // build.json is only produced by the deploy action; skip on localhost to avoid 404 noise
+      const host = location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+        dbg('skip build.json (dev host)');
+        return;
+      }
       try {
         const res = await fetch('./build.json', { cache: 'no-store' });
         if (res.ok) {
@@ -255,7 +261,7 @@ document.addEventListener('alpine:init', () => {
           dbg('build info', this.build);
         }
       } catch (e) {
-        dbg('build.json not available (likely dev)', e.message);
+        dbg('build.json not available', e.message);
       }
     },
 
@@ -727,7 +733,11 @@ document.addEventListener('alpine:init', () => {
       }
       const day = this.todayDay;
       if (day?.type === 'travel') this.mode = 'transit';
-      else this.mode = 'explore';
+      else if (day?.type === 'stay' || day?.type === 'mixed') this.mode = 'explore';
+      else {
+        // Before or after the trip: transit shows the pre/post-trip empty states.
+        this.mode = 'transit';
+      }
     },
 
     setMode(m) {

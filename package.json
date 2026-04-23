@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "bun --hot dev.ts",
     "validate": "bun tools/validate.ts",
-    "icons": "bash tools/gen-icons.sh"
+    "icons": "bash tools/gen-icons.sh",
+    "smoke": "bun tools/smoke-test.ts"
   },
   "devDependencies": {
     "ajv": "^8.18.0",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "playwright": "^1.59.1"
   }
 }

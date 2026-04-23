@@ -765,7 +765,7 @@ header h1 {
 
 .cal-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.3rem;
   margin-bottom: 0.4rem;
 }
@@ -782,12 +782,13 @@ header h1 {
 
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.3rem;
 }
 
 .cal-cell {
-  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 2.8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
