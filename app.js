@@ -191,6 +191,7 @@ document.addEventListener('alpine:init', () => {
     mode: 'transit',         // 'transit' | 'explore' | 'discover'
     _map: null,
     _mapInited: false,
+    iosHintDismissed: !!localStorage.getItem('mm_ios_hint_dismissed'),
     manualOverride: false,
     selectedPlaceId: null,
     gistUrl: '',
@@ -490,11 +491,11 @@ document.addEventListener('alpine:init', () => {
     },
 
     get showIOSInstallHint() {
-      const dismissed = localStorage.getItem('mm_ios_hint_dismissed');
-      return this.isIOS && !this.isStandalone && !dismissed && !!this.bundle;
+      return this.isIOS && !this.isStandalone && !this.iosHintDismissed && !!this.bundle;
     },
 
     dismissIOSHint() {
+      this.iosHintDismissed = true;
       localStorage.setItem('mm_ios_hint_dismissed', '1');
     },
 
