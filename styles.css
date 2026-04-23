@@ -1208,3 +1208,121 @@ header h1 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Entdecken — Karte (Leaflet)
+   ========================================================================== */
+.discover {
+  /* Nimmt den kompletten Raum zwischen header und tab-bar, Karte randlos */
+  margin: 0 calc(var(--gutter) * -1);
+}
+
+.map {
+  width: 100%;
+  height: calc(100vh - 11rem - env(safe-area-inset-bottom));
+  min-height: 360px;
+  border-block: 1px solid var(--color-rule);
+  background: #e7dfc9;
+}
+
+/* Leaflet overrides — warmer look, editorial */
+.leaflet-container {
+  font-family: var(--font-body);
+  background: #e7dfc9;
+}
+.leaflet-control-attribution {
+  background: rgba(252, 250, 242, 0.88) !important;
+  color: var(--color-ink-muted) !important;
+  font-size: 10px !important;
+  font-family: var(--font-body);
+}
+.leaflet-control-attribution a { color: var(--color-accent) !important; }
+.leaflet-bar {
+  border: 1px solid var(--color-rule) !important;
+  box-shadow: 0 2px 6px var(--color-shadow) !important;
+}
+.leaflet-bar a {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+  font-family: var(--font-display) !important;
+}
+.leaflet-bar a:hover { background: var(--color-bg) !important; }
+
+/* Custom Pins — DivIcons */
+.mm-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mm-pin-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  border: 2px solid var(--color-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.mm-pin-stay .mm-pin-dot {
+  background: var(--color-accent);
+  width: 22px;
+  height: 22px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+.mm-pin-place .mm-pin-dot {
+  background: var(--color-primary);
+  width: 16px;
+  height: 16px;
+}
+.mm-pin-muted .mm-pin-dot {
+  background: transparent;
+  border-color: var(--color-primary);
+  box-shadow: none;
+}
+
+/* Popup styling */
+.leaflet-popup-content-wrapper {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 14px var(--color-shadow) !important;
+  border: 1px solid var(--color-rule);
+}
+.leaflet-popup-tip {
+  background: var(--color-card) !important;
+  border: 1px solid var(--color-rule);
+}
+.leaflet-popup-content {
+  margin: 10px 14px !important;
+  font-family: var(--font-body);
+}
+.mm-pop-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+.mm-pop-date {
+  font-size: 0.82rem;
+  color: var(--color-ink-muted);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+.mm-pop-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+.mm-pop-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.88rem !important;
+  padding: 6px 10px !important;
+}

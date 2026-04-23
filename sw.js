@@ -3,7 +3,9 @@
 const VERSION = 'v1-2026-04-22-c';
 const SHELL_CACHE = `mm-shell-${VERSION}`;
 const GIST_CACHE = `mm-gist-${VERSION}`;
+const TILE_CACHE = `mm-tiles-v1`; // version-agnostic so tiles survive shell updates
 const MANIFEST_STATE = `mm-manifest-state-${VERSION}`;
+const TILE_HOSTS = ['basemaps.cartocdn.com', 'a.basemaps.cartocdn.com', 'b.basemaps.cartocdn.com', 'c.basemaps.cartocdn.com', 'd.basemaps.cartocdn.com'];
 
 const SHELL_FILES = [
   './',
@@ -18,7 +20,9 @@ const SHELL_FILES = [
   './icons/favicon-32.png',
   './icons/icon-source.svg',
   'https://unpkg.com/open-props/open-props.min.css',
-  'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js'
+  'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,7 +38,7 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then(keys => Promise.all(
         keys
-          .filter(k => k !== SHELL_CACHE && k !== GIST_CACHE)
+          .filter(k => k !== SHELL_CACHE && k !== GIST_CACHE && k !== TILE_CACHE)
           .map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
@@ -76,6 +80,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Map tiles (CartoDB): cache-first, only stores what the user has actually seen
+  if (TILE_HOSTS.includes(url.hostname)) {
+    event.respondWith(
+      caches.open(TILE_CACHE).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        try {
+          const res = await fetch(event.request);
+          if (res.ok) cache.put(event.request, res.clone());
+          return res;
+        } catch {
+          return cached || new Response('', { status: 504 });
+        }
+      })
+    );
+    return;
+  }
+
   // Gist raw data: network-first, fall back to cache
   if (url.hostname === 'gist.githubusercontent.com') {
     event.respondWith(
@@ -97,7 +119,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        if (response.ok && (url.origin === self.location.origin || url.hostname === 'unpkg.com')) {
+        if (response.ok && (url.origin === self.location.origin || url.hostname === 'unpkg.com' || url.hostname === 'fonts.gstatic.com' || url.hostname === 'fonts.googleapis.com')) {
           const clone = response.clone();
           caches.open(SHELL_CACHE).then(cache => cache.put(event.request, clone));
         }

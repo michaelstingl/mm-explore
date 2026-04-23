@@ -169,6 +169,8 @@ window.mmDebug = (on) => {
   return on;
 };
 
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 // Register Service Worker (prod only — skip on localhost dev to avoid caching pain)
 if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
   window.addEventListener('load', () => {
@@ -186,7 +188,9 @@ document.addEventListener('alpine:init', () => {
     error: null,
     offline: false,
     view: 'main',           // 'main' | 'settings'
-    mode: 'transit',         // 'transit' | 'explore'
+    mode: 'transit',         // 'transit' | 'explore' | 'discover'
+    _map: null,
+    _mapInited: false,
     manualOverride: false,
     selectedPlaceId: null,
     gistUrl: '',
@@ -746,6 +750,99 @@ document.addEventListener('alpine:init', () => {
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
+      if (m === 'discover' && this._map) {
+        setTimeout(() => this._map.invalidateSize(), 50);
+      }
+    },
+
+    initMap(el) {
+      if (this._mapInited || !window.L || !this.bundle) return;
+      this._mapInited = true;
+      const L = window.L;
+
+      const map = L.map(el, { zoomControl: true, attributionControl: true }).setView([42.5, 12.5], 6);
+      this._map = map;
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      }).addTo(map);
+
+      const places = this.bundle.places || [];
+      const stays = this.bundle.stays || [];
+      const placesById = Object.fromEntries(places.map(p => [p.id, p]));
+
+      const earliestStayDate = (placeId) => {
+        const ds = stays.filter(s => s.place_id === placeId && s.check_in).map(s => s.check_in).sort();
+        return ds[0] || null;
+      };
+
+      const pinsLatLngs = [];
+
+      // Stay-Pins (Adria-Blau, kräftig)
+      stays.forEach(stay => {
+        const c = stay.coords || placesById[stay.place_id]?.coords;
+        if (!c) return;
+        const icon = L.divIcon({
+          className: 'mm-pin mm-pin-stay',
+          html: `<span class="mm-pin-dot"></span>`,
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        });
+        const place = placesById[stay.place_id];
+        const m = L.marker(c, { icon }).addTo(map);
+        m.bindPopup(this._popupHtml(place?.name || stay.name, earliestStayDate(stay.place_id), stay.place_id, true));
+        pinsLatLngs.push(c);
+      });
+
+      // Place-Pins (Terracotta, Kreis mit Punkt)
+      places.forEach(place => {
+        if (!place.coords) return;
+        const hasStay = stays.some(s => s.place_id === place.id);
+        if (hasStay) return; // already rendered as stay pin
+        const muted = place.status === 'candidate';
+        const icon = L.divIcon({
+          className: `mm-pin mm-pin-place${muted ? ' mm-pin-muted' : ''}`,
+          html: `<span class="mm-pin-dot"></span>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+        });
+        const m = L.marker(place.coords, { icon }).addTo(map);
+        m.bindPopup(this._popupHtml(place.name, null, place.id, false));
+        pinsLatLngs.push(place.coords);
+      });
+
+      if (pinsLatLngs.length) {
+        map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
+      }
+
+      // Delegated click handler for popup buttons
+      el.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-open-place]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-open-place');
+        this.selectPlace(id);
+        this.setMode('explore');
+        map.closePopup();
+      });
+
+      setTimeout(() => map.invalidateSize(), 100);
+    },
+
+    _popupHtml(name, isoDate, placeId, isStay) {
+      const dateLine = isoDate
+        ? `<div class="mm-pop-date">${new Date(isoDate).toLocaleDateString(this.locale, { day: 'numeric', month: 'short' })}</div>`
+        : '';
+      const badge = isStay ? '<span class="mm-pop-badge">Übernachtung</span>' : '';
+      return `
+        <div class="mm-pop">
+          <div class="mm-pop-title">${escapeHtml(name || '')}</div>
+          ${dateLine}
+          ${badge}
+          <button class="btn-primary mm-pop-btn" data-open-place="${escapeHtml(placeId || '')}">In Erleben öffnen</button>
+        </div>
+      `;
     },
 
     clearModeOverride() {
