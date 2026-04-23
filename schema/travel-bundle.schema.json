@@ -110,12 +110,13 @@
       "additionalProperties": false,
       "properties": {
         "name":         { "type": "string", "minLength": 1 },
+        "type":         { "type": "string", "enum": ["charge", "sight", "meal", "rest"], "description": "Defaults to 'charge' if omitted. EV fields (kw, soc_*) are only meaningful when type is 'charge'." },
         "operator":     { "type": "string", "description": "e.g. 'Tesla', 'IONITY'." },
         "km_ab_start":  { "type": "number", "minimum": 0 },
-        "kw":           { "type": "number", "minimum": 0, "description": "Charger peak power in kW." },
+        "kw":           { "type": "number", "minimum": 0, "description": "Charger peak power in kW. Only meaningful for type 'charge'." },
         "stop_min":     { "type": "number", "minimum": 0 },
-        "soc_ankunft":  { "type": "number", "minimum": 0, "maximum": 100 },
-        "soc_abfahrt":  { "type": "number", "minimum": 0, "maximum": 100 },
+        "soc_ankunft":  { "type": "number", "minimum": 0, "maximum": 100, "description": "Only meaningful for type 'charge'." },
+        "soc_abfahrt":  { "type": "number", "minimum": 0, "maximum": 100, "description": "Only meaningful for type 'charge'." },
         "coords":       { "$ref": "#/$defs/Coords" },
         "maps_url":     { "type": "string", "format": "uri" },
         "note":         { "type": "string" }
@@ -159,6 +160,7 @@
         "id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "name":   { "type": "string", "minLength": 1 },
         "coords": { "$ref": "#/$defs/Coords" },
+        "status": { "type": "string", "enum": ["candidate", "confirmed"], "description": "Defaults to 'confirmed' if omitted. Candidates can ship and be rendered muted until chosen." },
         "pois":   { "type": "array", "items": { "$ref": "#/$defs/Poi" } }
       }
     },
