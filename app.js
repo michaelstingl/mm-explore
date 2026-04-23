@@ -707,6 +707,10 @@ document.addEventListener('alpine:init', () => {
         localStorage.setItem(STORAGE_KEY.BUNDLE_TIMESTAMP, ts);
         this.lastUpdated = ts;
         this.offline = false;
+        // Bundle changed — tear down the Leaflet instance so the next visit
+        // to Entdecken re-initializes with the fresh places/drives. Without
+        // this the map keeps the old pins and route polylines.
+        this._destroyMap();
       } catch (e) {
         console.warn('[mm] fetch failed, using cache', e);
         pushLog('warn', 'fetch failed', { error: e.message });
@@ -925,15 +929,25 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    _destroyMap() {
+      if (this._map) {
+        try { this._map.remove(); } catch {}
+      }
+      this._map = null;
+      this._mapInited = false;
+      this._placePoiLayer = null;
+      this._clusterMarkers = null;
+      this._clusterPois = null;
+      this._clusterPlaceId = null;
+      // If user is currently on discover, re-init next tick against fresh bundle.
+      if (this.mode === 'discover') this._ensureMapReady();
+    },
+
     _applyPlaceFocus() {
       const placeId = this._pendingPlaceFocus;
       if (!placeId || !this._map) return;
       this._pendingPlaceFocus = null;
       this._map.invalidateSize();
-      if (this._poiHighlight) {
-        this._map.removeLayer(this._poiHighlight);
-        this._poiHighlight = null;
-      }
       this._showPlacePois(placeId);
     },
 
@@ -966,6 +980,7 @@ document.addEventListener('alpine:init', () => {
       // up by index — Leaflet's popups are plain HTML, no Alpine scope.
       this._clusterPois = place.pois;
       this._clusterPlaceId = place.id;
+      this._clusterMarkers = {};
       place.pois.forEach((poi, idx) => {
         if (!poi.coords) return;
         const icon = L.divIcon({
@@ -975,6 +990,7 @@ document.addEventListener('alpine:init', () => {
           iconAnchor: [14, 14],
         });
         const marker = L.marker(poi.coords, { icon }).addTo(this._placePoiLayer);
+        this._clusterMarkers[idx] = marker;
         const note = poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : '';
         const mapsHref = this.mapsUrl(poi, 'nav') || poi.maps_url || '#';
         marker.bindPopup(`
@@ -998,33 +1014,27 @@ document.addEventListener('alpine:init', () => {
 
     _applyPoiFocus() {
       const poi = this._pendingPoiFocus;
-      if (!poi || !this._map || !window.L) return;
+      if (!poi || !this._map) return;
       this._pendingPoiFocus = null;
-      const L = window.L;
-      const map = this._map;
-      map.invalidateSize();
+      this._map.invalidateSize();
 
       // Expand the surrounding cluster so siblings show up too.
-      // _showPlacePois also fitBounds to the whole cluster — preserves
-      // context instead of zooming blindly to a single POI.
+      // _showPlacePois fitBounds to the whole cluster; then we just open
+      // the matching cluster marker's popup — no extra highlight pin.
       const placeId = this.selectedPlace?.id;
       if (placeId) this._showPlacePois(placeId);
 
-      if (this._poiHighlight) map.removeLayer(this._poiHighlight);
-      const icon = L.divIcon({
-        className: 'mm-pin mm-pin-poi',
-        html: `<span class="mm-pin-dot"></span>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-      });
-      this._poiHighlight = L.marker(poi.coords, { icon, zIndexOffset: 1000 })
-        .addTo(map)
-        .bindPopup(`<div class="mm-pop"><div class="mm-pop-title">${escapeHtml(poi.name || '')}</div>${poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : ''}</div>`)
-        .openPopup();
-
-      // If we didn't have a selectedPlace context, fall back to a single-POI
-      // zoom so the user still lands near the tapped marker.
-      if (!placeId) map.setView(poi.coords, 15, { animate: false });
+      const idx = placeId
+        ? (this._clusterPois || []).findIndex(p =>
+            p.coords && poi.coords && p.coords[0] === poi.coords[0] && p.coords[1] === poi.coords[1])
+        : -1;
+      const marker = idx >= 0 ? this._clusterMarkers?.[idx] : null;
+      if (marker) {
+        marker.openPopup();
+      } else {
+        // No cluster context — just center on the POI.
+        this._map.setView(poi.coords, 15, { animate: false });
+      }
     },
 
     _popupHtml(name, isoDate, placeId, isStay) {
