@@ -20,9 +20,10 @@
     },
     "trip": { "$ref": "#/$defs/Trip" },
     "days":   { "type": "array", "items": { "$ref": "#/$defs/Day" },   "minItems": 1 },
-    "drives": { "type": "array", "items": { "$ref": "#/$defs/Drive" } },
-    "stays":  { "type": "array", "items": { "$ref": "#/$defs/Stay" } },
-    "places": { "type": "array", "items": { "$ref": "#/$defs/Place" } }
+    "drives":   { "type": "array", "items": { "$ref": "#/$defs/Drive" } },
+    "stays":    { "type": "array", "items": { "$ref": "#/$defs/Stay" } },
+    "places":   { "type": "array", "items": { "$ref": "#/$defs/Place" } },
+    "chargers": { "type": "array", "items": { "$ref": "#/$defs/Charger" }, "description": "Reusable EV charger entities. Stops can reference these via Stop.charger_id to avoid duplicating coords/operator/kw across multiple drives." }
   },
 
   "$defs": {
@@ -115,7 +116,8 @@
         "name":         { "type": "string", "minLength": 1 },
         "type":         { "type": "string", "enum": ["charge", "sight", "meal", "rest"], "description": "Defaults to 'charge' if omitted. EV fields (kw, soc_*) are only meaningful when type is 'charge'." },
         "role":         { "type": "string", "enum": ["stop", "alternative"], "description": "Defaults to 'stop' if omitted. 'stop' entries are confirmed waypoints — the route polyline passes through them in array order. 'alternative' entries are optional Plan-B options near the route — they appear as muted pins on the map but do NOT affect the polyline." },
-        "place_id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional reference to places[].id. When set, Place data (coords, POIs, notes) is the source of truth and Stop fields like coords/note act as overrides only." },
+        "place_id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional reference to places[].id. When set, Place data (coords, POIs, notes) is the source of truth and Stop fields like coords/note act as overrides only. Use for Sight/Stay-anchored stops; for chargers use charger_id instead." },
+        "charger_id":   { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional reference to chargers[].id. When set, Charger data (coords, operator, kw, stalls) is the source of truth and Stop fields act as overrides only. Mutually disjoint from place_id (a Stop is either a Place- or Charger-anchor, not both)." },
         "operator":     { "type": "string", "description": "e.g. 'Tesla', 'IONITY'." },
         "km_ab_start":  { "type": "number", "minimum": 0 },
         "kw":           { "type": "number", "minimum": 0, "description": "Charger peak power in kW. Only meaningful for type 'charge'." },
@@ -167,6 +169,24 @@
         "coords": { "$ref": "#/$defs/Coords" },
         "status": { "type": "string", "enum": ["candidate", "confirmed"], "description": "Defaults to 'confirmed' if omitted. Candidates can ship and be rendered muted until chosen." },
         "pois":   { "type": "array", "items": { "$ref": "#/$defs/Poi" } }
+      }
+    },
+
+    "Charger": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "description": "Reusable EV charger entity. Referenced from Stop.charger_id to avoid duplicating per-drive.",
+      "properties": {
+        "id":       { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "name":     { "type": "string", "minLength": 1, "description": "Display name, e.g. 'Tesla Supercharger Magliano Sabina'." },
+        "operator": { "type": "string", "description": "Network operator, e.g. 'Tesla', 'IONITY', 'Ewiva', 'EnBW'." },
+        "network":  { "type": "string", "description": "Roaming/network identifier if different from operator (rare). Free-form." },
+        "kw":       { "type": "number", "minimum": 0, "description": "Peak power in kW per stall." },
+        "stalls":   { "type": "integer", "minimum": 0, "description": "Number of stalls / charging points." },
+        "coords":   { "$ref": "#/$defs/Coords" },
+        "maps_url": { "type": "string", "format": "uri" },
+        "note":     { "type": "string", "description": "Short operator note (amenities, payment, layout quirks)." }
       }
     },
 
