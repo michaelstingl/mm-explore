@@ -413,29 +413,68 @@
                     </template>
                   </div>
 
-                  <template x-if="drive.stops?.length">
+                  <template x-if="drive.stops?.some(s => (s.role || 'stop') === 'stop')">
                     <div class="stops">
-                      <h3>Ladestopps</h3>
+                      <h3>Stopps unterwegs</h3>
                       <ul>
-                        <template x-for="stop in drive.stops" :key="stop.name">
-                          <li class="stop">
+                        <template x-for="(stop, idx) in drive.stops.filter(s => (s.role || 'stop') === 'stop')" :key="idx">
+                          <li class="stop" x-data="{ d: stopDisplay(stop) }" x-show="d">
                             <div class="stop-main">
-                              <strong x-text="stop.name"></strong>
-                              <span class="muted" x-text="[stop.km_ab_start ? 'km ' + stop.km_ab_start : null, stop.kw ? stop.kw + ' kW' : null, stop.stop_min ? stop.stop_min + ' min' : null].filter(Boolean).join(' · ')"></span>
-                              <template x-if="stop.note">
-                                <span class="muted stop-note" x-text="stop.note"></span>
+                              <strong>
+                                <span x-text="d?.emoji"></span>
+                                <span x-text="d?.name"></span>
+                              </strong>
+                              <template x-if="d?.meta">
+                                <span class="muted" x-text="d.meta"></span>
+                              </template>
+                              <template x-if="d?.note">
+                                <span class="muted stop-note" x-text="d.note"></span>
                               </template>
                             </div>
                             <div class="stop-actions">
-                              <button @click="copyLocation(stop)" class="action-btn" aria-label="Stopp kopieren">📋</button>
-                              <template x-if="stop.maps_url || stop.coords">
-                                <a :href="mapsUrl(stop, 'nav') || stop.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(stop, 'nav')">🚙</a>
+                              <button @click="copyLocation(d.target)" class="action-btn" aria-label="Stopp kopieren">📋</button>
+                              <button @click="setMode('discover'); $nextTick(() => _map?.flyTo(d.target.coords, 13))" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
+                              <template x-if="d?.target?.maps_url || d?.target?.coords">
+                                <a :href="mapsUrl(d.target, 'nav') || d.target.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(d.target, 'nav')">🚙</a>
                               </template>
                             </div>
                           </li>
                         </template>
                       </ul>
                     </div>
+                  </template>
+
+                  <template x-if="drive.stops?.some(s => s.role === 'alternative')">
+                    <details class="stops stops-alts">
+                      <summary>
+                        <span x-text="'Alternativen (' + drive.stops.filter(s => s.role === 'alternative').length + ')'"></span>
+                      </summary>
+                      <ul>
+                        <template x-for="(stop, idx) in drive.stops.filter(s => s.role === 'alternative')" :key="idx">
+                          <li class="stop stop-alt" x-data="{ d: stopDisplay(stop) }" x-show="d">
+                            <div class="stop-main">
+                              <strong>
+                                <span x-text="d?.emoji"></span>
+                                <span x-text="d?.name"></span>
+                              </strong>
+                              <template x-if="d?.meta">
+                                <span class="muted" x-text="d.meta"></span>
+                              </template>
+                              <template x-if="d?.note">
+                                <span class="muted stop-note" x-text="d.note"></span>
+                              </template>
+                            </div>
+                            <div class="stop-actions">
+                              <button @click="copyLocation(d.target)" class="action-btn" aria-label="Stopp kopieren">📋</button>
+                              <button @click="setMode('discover'); $nextTick(() => _map?.flyTo(d.target.coords, 13))" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
+                              <template x-if="d?.target?.maps_url || d?.target?.coords">
+                                <a :href="mapsUrl(d.target, 'nav') || d.target.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(d.target, 'nav')">🚙</a>
+                              </template>
+                            </div>
+                          </li>
+                        </template>
+                      </ul>
+                    </details>
                   </template>
                 </article>
 

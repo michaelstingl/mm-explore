@@ -1178,6 +1178,31 @@ document.addEventListener('alpine:init', () => {
       return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
     },
 
+    // Display-shaped resolution of a Stop: emoji, name, one-line meta,
+    // and a target object usable for copyLocation / mapsUrl. Used by both
+    // the Drive-Card inline list and the map popups.
+    stopDisplay(stop) {
+      const r = this.resolveStop(stop);
+      if (!r) return null;
+      const isCharge = stop.type === 'charge';
+      const emoji = isCharge ? '⚡' : (stop.type === 'meal' ? '🍽️' : (stop.type === 'rest' ? '☕' : '🏛️'));
+      const operator = isCharge ? (stop.operator || r.charger?.operator) : null;
+      const kw = isCharge ? (stop.kw ?? r.charger?.kw) : null;
+      const meta = [
+        stop.km_ab_start != null ? `km ${stop.km_ab_start}` : null,
+        operator,
+        kw ? `${kw} kW` : null,
+        stop.stop_min ? `${stop.stop_min} min` : null,
+      ].filter(Boolean).join(' · ');
+      return {
+        emoji,
+        name: r.name,
+        meta,
+        note: stop.note || null,
+        target: { name: r.name, coords: r.coords, maps_url: stop.maps_url || r.charger?.maps_url || null },
+      };
+    },
+
     // Resolve a Stop's coords + display name, honoring the override pattern:
     // inline Stop fields win, then Charger/Place lookup. Returns null if no
     // coords resolve — caller decides whether to skip rendering.
