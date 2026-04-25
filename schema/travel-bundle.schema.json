@@ -114,6 +114,8 @@
       "properties": {
         "name":         { "type": "string", "minLength": 1 },
         "type":         { "type": "string", "enum": ["charge", "sight", "meal", "rest"], "description": "Defaults to 'charge' if omitted. EV fields (kw, soc_*) are only meaningful when type is 'charge'." },
+        "role":         { "type": "string", "enum": ["stop", "alternative"], "description": "Defaults to 'stop' if omitted. 'stop' entries are confirmed waypoints — the route polyline passes through them in array order. 'alternative' entries are optional Plan-B options near the route — they appear as muted pins on the map but do NOT affect the polyline." },
+        "place_id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional reference to places[].id. When set, Place data (coords, POIs, notes) is the source of truth and Stop fields like coords/note act as overrides only." },
         "operator":     { "type": "string", "description": "e.g. 'Tesla', 'IONITY'." },
         "km_ab_start":  { "type": "number", "minimum": 0 },
         "kw":           { "type": "number", "minimum": 0, "description": "Charger peak power in kW. Only meaningful for type 'charge'." },
