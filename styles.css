@@ -1360,6 +1360,47 @@ main.mode-discover {
   box-shadow: none;
 }
 
+/* Stop pins (waypoints + alternatives on a Drive). Confirmed stops sit on
+   the polyline and use a filled badge; alternatives are smaller, dimmer,
+   and don't affect route geometry. */
+.mm-pin-stop .mm-pin-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-card);
+  border: 2px solid var(--color-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  line-height: 1;
+}
+.mm-pin-stop-charge .mm-pin-emoji {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-card));
+}
+.mm-pin-stop-alt .mm-pin-emoji {
+  border-style: dashed;
+  border-width: 1.5px;
+  opacity: 0.7;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.mm-pop-meta {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+.mm-pop-note {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
 /* Popup styling */
 .leaflet-popup-content-wrapper {
   background: var(--color-card) !important;

@@ -826,12 +826,26 @@ document.addEventListener('alpine:init', () => {
         return findPlaceByRef(displayName);
       };
 
+      // Layer for stop/alternative pins — rendered alongside Place/Stay pins.
+      const stopPinsLayer = L.layerGroup().addTo(map);
+
       for (const d of (this.bundle.drives || [])) {
         const from = resolveEndpoint(d.from_place_id, d.from);
         const to = resolveEndpoint(d.to_place_id, d.to);
         if (!from?.coords || !to?.coords) continue;
         const isCandidate = d.status === 'candidate';
-        L.polyline([from.coords, to.coords], {
+
+        // Confirmed waypoints (role === 'stop') sit on the polyline in array
+        // order. Alternatives are rendered as muted pins below — they don't
+        // affect route geometry.
+        const stopWaypoints = (d.stops || [])
+          .filter(s => (s.role || 'stop') === 'stop')
+          .map(s => this.resolveStop(s))
+          .filter(Boolean);
+
+        const lineCoords = [from.coords, ...stopWaypoints.map(w => w.coords), to.coords];
+
+        L.polyline(lineCoords, {
           className: isCandidate ? 'mm-route-candidate' : 'mm-route',
           color: isCandidate ? '#E8743B' : '#2E5266',
           weight: isCandidate ? 2.5 : 3,
@@ -839,6 +853,38 @@ document.addEventListener('alpine:init', () => {
           dashArray: isCandidate ? '4 6' : undefined,
           interactive: false,
         }).addTo(map);
+
+        // Render this drive's stop + alternative pins.
+        for (const s of (d.stops || [])) {
+          const r = this.resolveStop(s);
+          if (!r) continue;
+          const role = s.role || 'stop';
+          const isAlt = role === 'alternative';
+          const isCharge = s.type === 'charge';
+          const emoji = isCharge ? '⚡' : (s.type === 'meal' ? '🍽️' : (s.type === 'rest' ? '☕' : '🏛️'));
+          const icon = L.divIcon({
+            className: `mm-pin mm-pin-stop${isAlt ? ' mm-pin-stop-alt' : ''}${isCharge ? ' mm-pin-stop-charge' : ''}`,
+            html: `<span class="mm-pin-emoji">${emoji}</span>`,
+            iconSize: isAlt ? [22, 22] : [28, 28],
+            iconAnchor: isAlt ? [11, 11] : [14, 14],
+          });
+          const m = L.marker(r.coords, { icon, zIndexOffset: isAlt ? 0 : 200 }).addTo(stopPinsLayer);
+          const subtitle = [
+            isAlt ? 'Alternative' : 'Stop',
+            isCharge && r.charger?.operator ? r.charger.operator : null,
+            isCharge && r.charger?.kw ? `${r.charger.kw} kW` : null,
+            s.stop_min ? `${s.stop_min} min` : null,
+          ].filter(Boolean).join(' · ');
+          const noteHtml = s.note ? `<div class="mm-pop-note">${escapeHtml(s.note)}</div>` : '';
+          m.bindPopup(`
+            <div class="mm-pop">
+              <div class="mm-pop-title">${emoji} ${escapeHtml(r.name)}</div>
+              ${subtitle ? `<div class="mm-pop-meta">${escapeHtml(subtitle)}</div>` : ''}
+              ${noteHtml}
+            </div>
+          `);
+          if (!isAlt) pinsLatLngs.push(r.coords);
+        }
       }
 
       // Layer group for per-place POI cluster — refilled on each place click.
@@ -1126,6 +1172,23 @@ document.addEventListener('alpine:init', () => {
 
     findPlace(placeId) {
       return this.bundle?.places?.find(p => p.id === placeId) || null;
+    },
+
+    findCharger(chargerId) {
+      return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
+    },
+
+    // Resolve a Stop's coords + display name, honoring the override pattern:
+    // inline Stop fields win, then Charger/Place lookup. Returns null if no
+    // coords resolve — caller decides whether to skip rendering.
+    resolveStop(stop) {
+      if (!stop) return null;
+      const charger = stop.charger_id ? this.findCharger(stop.charger_id) : null;
+      const place = stop.place_id ? this.findPlace(stop.place_id) : null;
+      const coords = stop.coords || charger?.coords || place?.coords || null;
+      if (!coords) return null;
+      const name = stop.name || charger?.name || place?.name || '';
+      return { coords, name, charger, place };
     },
 
     // Formatters
