@@ -4,6 +4,7 @@ node_modules/
 *.log
 .env
 local/
+_work/
 
 # Generated from icons/icon-source.svg by deploy.yml
 icons/icon-192.png
