@@ -414,10 +414,21 @@
                   </div>
 
                   <template x-if="drive.stops?.length">
-                    <div class="stops">
-                      <h3>Stopps & Alternativen</h3>
+                    <div class="stops" x-data="{ showAlts: true }">
+                      <div class="stops-head">
+                        <h3>Stopps</h3>
+                        <template x-if="drive.stops.some(s => s.role === 'alternative')">
+                          <button
+                            class="alts-toggle"
+                            :class="{ 'alts-toggle-active': showAlts }"
+                            @click="showAlts = !showAlts"
+                            :aria-pressed="showAlts.toString()"
+                            x-text="(showAlts ? '− ' : '+ ') + 'Alt. (' + drive.stops.filter(s => s.role === 'alternative').length + ')'">
+                          </button>
+                        </template>
+                      </div>
                       <ul>
-                        <template x-for="(stop, idx) in stopsSorted(drive)" :key="idx">
+                        <template x-for="(stop, idx) in stopsSorted(drive).filter(s => showAlts || s.role !== 'alternative')" :key="idx">
                           <li class="stop" :class="{ 'stop-alt': stop.role === 'alternative' }" x-data="{ d: stopDisplay(stop) }" x-show="d">
                             <div class="stop-main">
                               <strong>

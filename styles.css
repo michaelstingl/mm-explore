@@ -350,8 +350,8 @@ header h1 {
 }
 
 /* ---------- Stops (Ladestopps) ---------- */
+.stops { margin-top: 1.8rem; }
 .stops h3 {
-  margin-top: 1.8rem;
   position: relative;
   padding-left: 1.4rem;
 }
@@ -408,6 +408,34 @@ header h1 {
 .stop-main strong span:first-child {
   margin-right: 0.35rem;
   font-style: normal;
+}
+
+.stops-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.stops-head h3 { margin: 0; }
+.alts-toggle {
+  background: transparent;
+  border: 1px dashed var(--color-rule);
+  border-radius: 2px;
+  padding: 0.2rem 0.55rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out);
+}
+.alts-toggle:hover { border-style: solid; color: var(--color-text); }
+.alts-toggle-active {
+  border-style: solid;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-rule) 30%, transparent);
 }
 
 .stop-alt .stop-main strong { opacity: 0.78; }
