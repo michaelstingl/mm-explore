@@ -110,8 +110,13 @@
 
     "Stop": {
       "type": "object",
-      "required": ["name"],
       "additionalProperties": false,
+      "description": "A waypoint or alternative on a Drive. Must anchor via at least one of: charger_id (Charger reference), place_id (Place reference), or inline name+coords.",
+      "anyOf": [
+        { "required": ["charger_id"] },
+        { "required": ["place_id"] },
+        { "required": ["name", "coords"] }
+      ],
       "properties": {
         "name":         { "type": "string", "minLength": 1 },
         "type":         { "type": "string", "enum": ["charge", "sight", "meal", "rest"], "description": "Defaults to 'charge' if omitted. EV fields (kw, soc_*) are only meaningful when type is 'charge'." },
