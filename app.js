@@ -1182,6 +1182,20 @@ document.addEventListener('alpine:init', () => {
       return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
     },
 
+    // Sort a Drive's stops + alternatives chronologically by km_ab_start.
+    // Ties keep array order. Stops without km_ab_start sink to the end —
+    // they're typically alternatives where the agent didn't pin a position.
+    stopsSorted(drive) {
+      const list = (drive?.stops || []).map((s, i) => ({ s, i }));
+      list.sort((a, b) => {
+        const ka = a.s.km_ab_start ?? Infinity;
+        const kb = b.s.km_ab_start ?? Infinity;
+        if (ka !== kb) return ka - kb;
+        return a.i - b.i;
+      });
+      return list.map(x => x.s);
+    },
+
     // Display-shaped resolution of a Stop: emoji, name, one-line meta,
     // and a target object usable for copyLocation / mapsUrl. Used by both
     // the Drive-Card inline list and the map popups.

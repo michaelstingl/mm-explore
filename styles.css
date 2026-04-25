@@ -410,33 +410,27 @@ header h1 {
   font-style: normal;
 }
 
-.stops-alts {
-  margin-top: 0.75rem;
-  border-top: 1px dashed var(--color-rule);
-  padding-top: 0.75rem;
+.stop-alt .stop-main strong { opacity: 0.78; }
+.stop-alt .stop-main .muted { opacity: 0.78; }
+.stop-alt {
+  border-left: 2px dashed var(--color-rule);
+  padding-left: 0.55rem;
+  margin-left: -0.55rem;
 }
-.stops-alts > summary {
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  letter-spacing: 0.04em;
+.alt-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 1px 5px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
-  list-style: none;
-  user-select: none;
-  padding: 0.25rem 0;
+  border: 1px dashed var(--color-rule);
+  border-radius: 2px;
+  vertical-align: middle;
 }
-.stops-alts > summary::-webkit-details-marker { display: none; }
-.stops-alts > summary::before {
-  content: '+ ';
-  display: inline-block;
-  width: 1.2em;
-  color: var(--color-accent);
-}
-.stops-alts[open] > summary::before { content: '− '; }
-.stops-alts ul { margin-top: 0.5rem; }
-.stop-alt .stop-main strong { opacity: 0.85; }
-.stop-alt .stop-main .muted { opacity: 0.85; }
 
 .stop-link {
   display: inline-flex;
