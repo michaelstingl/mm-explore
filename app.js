@@ -634,12 +634,16 @@ document.addEventListener('alpine:init', () => {
       this._simulatedDate = iso === realToday ? null : iso;
       pushLog('user', `date → ${iso}`, { simulating: this._simulatedDate !== null });
       this._syncDateQuery();
+      // Drop any sticky place selection so Erleben follows the new day's
+      // default (today's stay → place). User can re-pick from the dropdown.
+      this.selectedPlaceId = null;
       this.pickDefaultMode();
     },
 
     resetDate() {
       this._simulatedDate = null;
       this._syncDateQuery();
+      this.selectedPlaceId = null;
       this.pickDefaultMode();
     },
 
