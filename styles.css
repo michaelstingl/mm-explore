@@ -1415,6 +1415,72 @@ main.mode-discover {
   box-shadow: none;
 }
 
+/* Geolocation marker: blue dot with soft pulse + accuracy circle drawn
+   separately as a Leaflet L.circle. */
+.mm-geo-marker {
+  position: relative;
+  pointer-events: none;
+}
+.mm-geo-dot {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 999px;
+  background: #1f7ad6;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(31, 122, 214, 0.5);
+}
+.mm-geo-pulse {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 999px;
+  background: rgba(31, 122, 214, 0.35);
+  animation: mm-geo-pulse 2s ease-out infinite;
+}
+@keyframes mm-geo-pulse {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0;   }
+}
+
+/* Floating geo button on the discover view, top-right of the map. */
+.discover { position: relative; }
+.geo-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 500;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-rule);
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: all 0.15s var(--ease-out);
+}
+.geo-btn:hover { background: var(--color-bg); }
+.geo-btn-active {
+  background: #1f7ad6;
+  border-color: #1f7ad6;
+  color: #fff;
+}
+.geo-btn-locating { animation: mm-geo-blink 1.2s ease-in-out infinite; }
+@keyframes mm-geo-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
 /* Stop pins (waypoints + alternatives on a Drive). Confirmed stops sit on
    the polyline and use a filled badge; alternatives are smaller, dimmer,
    and don't affect route geometry. */

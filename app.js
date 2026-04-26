@@ -191,6 +191,12 @@ document.addEventListener('alpine:init', () => {
     mode: 'transit',         // 'transit' | 'explore' | 'discover'
     _map: null,
     _mapInited: false,
+    geoActive: false,
+    geoLocating: false,
+    _geoWatchId: null,
+    _geoMarker: null,
+    _geoCircle: null,
+    _geoFirstFix: false,
     iosHintDismissed: !!localStorage.getItem('mm_ios_hint_dismissed'),
     manualOverride: false,
     selectedPlaceId: null,
@@ -755,6 +761,9 @@ document.addEventListener('alpine:init', () => {
     setMode(m) {
       dbg('mode →', m);
       pushLog('user', `mode → ${m}`);
+      if (this.mode === 'discover' && m !== 'discover' && this.geoActive) {
+        this._stopGeo();
+      }
       this.mode = m;
       this.manualOverride = true;
       localStorage.setItem(STORAGE_KEY.MODE_OVERRIDE, m);
@@ -987,6 +996,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     _destroyMap() {
+      if (this.geoActive) this._stopGeo();
       if (this._map) {
         try { this._map.remove(); } catch {}
       }
@@ -996,6 +1006,8 @@ document.addEventListener('alpine:init', () => {
       this._clusterMarkers = null;
       this._clusterPois = null;
       this._clusterPlaceId = null;
+      this._geoMarker = null;
+      this._geoCircle = null;
       // If user is currently on discover, re-init next tick against fresh bundle.
       if (this.mode === 'discover') this._ensureMapReady();
     },
@@ -1180,6 +1192,90 @@ document.addEventListener('alpine:init', () => {
 
     findCharger(chargerId) {
       return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
+    },
+
+    // Geolocation: toggle a live blue dot on the discover map. Uses
+    // watchPosition so we follow movement while the tab is open. Stops
+    // on second tap or when the user leaves discover mode.
+    toggleGeo() {
+      if (this.geoActive) {
+        this._stopGeo();
+        return;
+      }
+      if (!('geolocation' in navigator)) {
+        this.showToast('Standort wird vom Gerät nicht unterstützt');
+        return;
+      }
+      this.geoLocating = true;
+      pushLog('user', 'geo → on');
+      this._geoFirstFix = false;
+      this._geoWatchId = navigator.geolocation.watchPosition(
+        (pos) => this._onGeoFix(pos),
+        (err) => this._onGeoError(err),
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      );
+      this.geoActive = true;
+    },
+
+    _stopGeo() {
+      if (this._geoWatchId != null) {
+        navigator.geolocation.clearWatch(this._geoWatchId);
+        this._geoWatchId = null;
+      }
+      if (this._geoMarker) { this._geoMarker.remove(); this._geoMarker = null; }
+      if (this._geoCircle) { this._geoCircle.remove(); this._geoCircle = null; }
+      this.geoActive = false;
+      this.geoLocating = false;
+      this._geoFirstFix = false;
+      pushLog('user', 'geo → off');
+    },
+
+    _onGeoFix(pos) {
+      this.geoLocating = false;
+      if (!this._map || !window.L) return;
+      const L = window.L;
+      const { latitude, longitude, accuracy } = pos.coords;
+      const latlng = [latitude, longitude];
+      if (!this._geoMarker) {
+        const icon = L.divIcon({
+          className: 'mm-geo-marker',
+          html: '<span class="mm-geo-pulse"></span><span class="mm-geo-dot"></span>',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        });
+        this._geoMarker = L.marker(latlng, { icon, zIndexOffset: 1000, interactive: false }).addTo(this._map);
+        this._geoCircle = L.circle(latlng, {
+          radius: accuracy,
+          color: '#1f7ad6',
+          fillColor: '#1f7ad6',
+          fillOpacity: 0.12,
+          weight: 1,
+          opacity: 0.4,
+          interactive: false,
+        }).addTo(this._map);
+      } else {
+        this._geoMarker.setLatLng(latlng);
+        this._geoCircle.setLatLng(latlng).setRadius(accuracy);
+      }
+      if (!this._geoFirstFix) {
+        this._geoFirstFix = true;
+        const z = Math.max(this._map.getZoom(), 12);
+        this._map.flyTo(latlng, z, { duration: 0.6 });
+      }
+    },
+
+    _onGeoError(err) {
+      this.geoLocating = false;
+      this.geoActive = false;
+      if (this._geoWatchId != null) {
+        navigator.geolocation.clearWatch(this._geoWatchId);
+        this._geoWatchId = null;
+      }
+      const msg = err?.code === 1
+        ? 'Standort blockiert — in den Geräte-Einstellungen freigeben'
+        : 'Standort nicht verfügbar';
+      this.showToast(msg, 4000);
+      pushLog('user', `geo → error code=${err?.code}`);
     },
 
     // Sort a Drive's stops + alternatives chronologically by km_ab_start.

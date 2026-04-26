@@ -342,6 +342,12 @@
              node and the map renders blank on re-entry. -->
         <div x-show="mode === 'discover'" class="discover" x-cloak>
           <div id="map" class="map"></div>
+          <button
+            class="geo-btn"
+            :class="{ 'geo-btn-active': geoActive, 'geo-btn-locating': geoLocating }"
+            @click="toggleGeo()"
+            :aria-pressed="geoActive.toString()"
+            aria-label="Eigene Position anzeigen">📍</button>
         </div>
 
         <!-- Unterwegs-Modus -->
