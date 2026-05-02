@@ -1061,7 +1061,7 @@ document.addEventListener('alpine:init', () => {
         const marker = L.marker(poi.coords, { icon }).addTo(this._placePoiLayer);
         this._clusterMarkers[idx] = marker;
         const note = poi.note ? `<div class="mm-pop-date">${escapeHtml(poi.note)}</div>` : '';
-        const mapsHref = this.mapsUrl(poi, 'nav') || poi.maps_url || '#';
+        const mapsHref = this.mapsUrl(poi, 'view') || poi.maps_url || '#';
         marker.bindPopup(`
           <div class="mm-pop">
             <div class="mm-pop-title">${this.poiIcon(poi.type)} ${escapeHtml(poi.name || '')}</div>
@@ -1069,7 +1069,7 @@ document.addEventListener('alpine:init', () => {
             <div class="mm-pop-actions">
               <button class="action-btn" aria-label="Kopieren" data-poi-idx="${idx}" data-action="copy">📋</button>
               <button class="action-btn" aria-label="In Erleben öffnen" data-poi-idx="${idx}" data-action="erleben">🏖️</button>
-              <a class="action-btn" aria-label="In Maps-App öffnen" href="${escapeHtml(mapsHref)}" target="_blank">🚙</a>
+              <a class="action-btn" aria-label="In Maps anzeigen" href="${escapeHtml(mapsHref)}" target="_blank">📌</a>
             </div>
           </div>
         `);

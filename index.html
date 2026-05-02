@@ -276,7 +276,7 @@
                             <button @click="showPlaceOnMap(findPlace(stay.place_id))" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
                           </template>
                           <template x-if="stay.maps_url">
-                            <a :href="stay.maps_url" target="_blank" class="action-btn" aria-label="Route">🚙</a>
+                            <a :href="mapsUrl(stay, 'view') || stay.maps_url" target="_blank" class="action-btn" aria-label="In Maps anzeigen">📌</a>
                           </template>
                           <template x-if="stay.phone">
                             <a :href="'tel:' + stay.phone" class="action-btn" aria-label="Anrufen">📞</a>
@@ -314,7 +314,7 @@
                                   <button @click="showPoiOnMap(poi)" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
                                 </template>
                                 <template x-if="poi.maps_url || poi.coords">
-                                  <a :href="mapsUrl(poi, 'nav') || poi.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(poi, 'nav')">🚙</a>
+                                  <a :href="mapsUrl(poi, 'view') || poi.maps_url" target="_blank" class="action-btn" aria-label="In Maps anzeigen" @click="logMapsClick(poi, 'view')">📌</a>
                                 </template>
                               </div>
                             </li>
@@ -415,7 +415,7 @@
                   <div class="inline-actions">
                     <button @click="copyLocation({ name: drive.to, coords: drive.coords })" class="action-btn" aria-label="Ziel kopieren">📋</button>
                     <template x-if="drive.maps_url || drive.coords">
-                      <a :href="mapsUrl(drive, 'nav') || drive.maps_url" target="_blank" class="action-btn" @click="logMapsClick(drive, 'nav')" aria-label="Route öffnen">🚙</a>
+                      <a :href="mapsUrl(drive, 'view') || drive.maps_url" target="_blank" class="action-btn" @click="logMapsClick(drive, 'view')" aria-label="Ziel in Maps anzeigen">📌</a>
                     </template>
                   </div>
 
@@ -455,7 +455,7 @@
                               <button @click="copyLocation(d.target)" class="action-btn" aria-label="Stopp kopieren">📋</button>
                               <button @click="setMode('discover'); $nextTick(() => _map?.flyTo(d.target.coords, 13))" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
                               <template x-if="d?.target?.maps_url || d?.target?.coords">
-                                <a :href="mapsUrl(d.target, 'nav') || d.target.maps_url" target="_blank" class="action-btn" aria-label="In Maps-App öffnen" @click="logMapsClick(d.target, 'nav')">🚙</a>
+                                <a :href="mapsUrl(d.target, 'view') || d.target.maps_url" target="_blank" class="action-btn" aria-label="In Maps anzeigen" @click="logMapsClick(d.target, 'view')">📌</a>
                               </template>
                             </div>
                           </li>
@@ -483,7 +483,7 @@
                         <button @click="showPlaceOnMap(findPlace(stay.place_id))" class="action-btn" aria-label="Auf Karte zeigen">🗺️</button>
                       </template>
                       <template x-if="stay.maps_url || stay.coords">
-                        <a :href="mapsUrl(stay, 'nav') || stay.maps_url" target="_blank" class="action-btn" @click="logMapsClick(stay, 'nav')" aria-label="Route">🚙</a>
+                        <a :href="mapsUrl(stay, 'view') || stay.maps_url" target="_blank" class="action-btn" @click="logMapsClick(stay, 'view')" aria-label="In Maps anzeigen">📌</a>
                       </template>
                       <template x-if="stay.phone">
                         <a :href="'tel:' + stay.phone" class="action-btn" aria-label="Anrufen">📞</a>
