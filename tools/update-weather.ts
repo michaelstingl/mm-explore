@@ -30,9 +30,15 @@ type Coords = [number, number];
 interface Stay {
   id: string;
   name: string;
-  coords?: Coords;
+  place_id?: string;
+  coords?: Coords | null;
   check_in?: string;
   check_out?: string;
+}
+
+interface Place {
+  id: string;
+  coords?: Coords;
 }
 
 interface WeatherDay {
@@ -54,8 +60,18 @@ interface StayWeather {
 
 interface Bundle {
   stays?: Stay[];
+  places?: Place[];
   weather?: Record<string, StayWeather>;
   [k: string]: unknown;
+}
+
+function resolveStayCoords(stay: Stay, places: Place[]): Coords | null {
+  if (stay.coords) return stay.coords;
+  if (stay.place_id) {
+    const place = places.find((p) => p.id === stay.place_id);
+    if (place?.coords) return place.coords;
+  }
+  return null;
 }
 
 const GIST_API = `https://api.github.com/gists/${GIST_ID}`;
@@ -191,7 +207,8 @@ console.log(`Weather update — today ${today}, horizon ${FORECAST_DAYS}d${DRY_R
 
 const bundle = await fetchBundle();
 const stays = bundle.stays ?? [];
-console.log(`Bundle has ${stays.length} stays`);
+const places = bundle.places ?? [];
+console.log(`Bundle has ${stays.length} stays, ${places.length} places`);
 
 const weather: Record<string, StayWeather> = bundle.weather ?? {};
 const updatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -200,8 +217,9 @@ let touched = 0;
 let skipped = 0;
 
 for (const stay of stays) {
-  if (!stay.coords) {
-    console.log(`  · ${stay.id}: no coords, skip`);
+  const coords = resolveStayCoords(stay, places);
+  if (!coords) {
+    console.log(`  · ${stay.id}: no coords (and no place_id fallback), skip`);
     skipped++;
     continue;
   }
@@ -210,13 +228,13 @@ for (const stay of stays) {
     console.log(`  · ${stay.id}: no future dates in window`);
     continue;
   }
-  console.log(`  → ${stay.id} (${stay.name}): ${dates[0]} … ${dates[dates.length - 1]} (${dates.length}d)`);
+  console.log(`  → ${stay.id} (${stay.name}): ${dates[0]} … ${dates[dates.length - 1]} (${dates.length}d) @ ${coords}`);
   try {
-    const days = await fetchOpenMeteo(stay.coords, dates);
+    const days = await fetchOpenMeteo(coords, dates);
     weather[stay.id] = {
       updated_at: updatedAt,
       source: 'open-meteo',
-      coords: stay.coords,
+      coords,
       days,
     };
     touched++;
