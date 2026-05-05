@@ -376,6 +376,28 @@
               </div>
             </template>
 
+            <!-- Weather forecast for today (covers travel + stay days) -->
+            <template x-if="tripState === 'during' && weatherForDay(todayDay).length">
+              <div class="weather-row" x-data="{ pills: weatherForDay(todayDay) }" x-init="$watch('todayDay', () => { pills = weatherForDay(todayDay); })">
+                <template x-for="w in pills" :key="w.stayId">
+                  <div class="weather-pill" :title="w.label">
+                    <span class="w-icon" x-text="w.icon"></span>
+                    <span class="w-temps">
+                      <span x-text="Math.round(w.tmin)"></span>°
+                      <span class="w-sep">/</span>
+                      <span x-text="Math.round(w.tmax)"></span>°
+                    </span>
+                    <template x-if="w.precip >= 0.5">
+                      <span class="w-precip" x-text="w.precip.toFixed(1).replace(/\.0$/, '') + ' mm'"></span>
+                    </template>
+                    <template x-if="pills.length > 1">
+                      <span class="w-stay" x-text="w.placeName"></span>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+
             <!-- During trip: travel day -->
             <template x-if="tripState === 'during' && todayDay?.drive_id">
               <div

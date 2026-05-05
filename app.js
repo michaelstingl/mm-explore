@@ -1194,6 +1194,65 @@ document.addEventListener('alpine:init', () => {
       return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
     },
 
+    // Weather: a date is "covered" by a stay if check_in_date <= date <= check_out_date
+    // (inclusive on both ends — so the move-out day shows BOTH stays, which is what
+    // travelers want: morning weather of the place they're leaving + arrival weather).
+    weatherForDay(day) {
+      if (!day?.date || !this.bundle?.weather) return [];
+      const date = day.date;
+      const stays = this.bundle?.stays || [];
+      const out = [];
+      for (const stay of stays) {
+        const ci = (stay.check_in || '').slice(0, 10);
+        const co = (stay.check_out || '').slice(0, 10);
+        if (!ci || !co) continue;
+        if (date < ci || date > co) continue;
+        const bucket = this.bundle.weather[stay.id];
+        const forecast = bucket?.days?.[date];
+        if (!forecast) continue;
+        out.push({
+          stayId: stay.id,
+          stayName: stay.name,
+          placeName: stay.place_id ? (this.findPlace(stay.place_id)?.name || stay.name) : stay.name,
+          tmin: forecast.tmin,
+          tmax: forecast.tmax,
+          precip: forecast.precip_mm ?? 0,
+          code: forecast.code,
+          icon: this.weatherIcon(forecast.code),
+          label: this.weatherLabel(forecast.code),
+        });
+      }
+      return out;
+    },
+
+    weatherIcon(code) {
+      if (code == null) return '·';
+      if (code === 0) return '☀️';
+      if (code === 1 || code === 2) return '🌤️';
+      if (code === 3) return '☁️';
+      if (code === 45 || code === 48) return '🌫️';
+      if (code >= 95) return '⛈️';
+      if ((code >= 71 && code <= 77) || code === 85 || code === 86) return '🌨️';
+      if (code >= 51 && code <= 67) return '🌧️';
+      if (code >= 80 && code <= 82) return '🌦️';
+      return '·';
+    },
+
+    weatherLabel(code) {
+      if (code == null) return '';
+      if (code === 0) return 'Klar';
+      if (code === 1) return 'Heiter';
+      if (code === 2) return 'Teils bewölkt';
+      if (code === 3) return 'Bedeckt';
+      if (code === 45 || code === 48) return 'Nebel';
+      if (code >= 95) return 'Gewitter';
+      if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'Schnee';
+      if (code >= 51 && code <= 57) return 'Niesel';
+      if (code >= 61 && code <= 67) return 'Regen';
+      if (code >= 80 && code <= 82) return 'Schauer';
+      return '';
+    },
+
     // Geolocation: toggle a live blue dot on the discover map. Uses
     // watchPosition so we follow movement while the tab is open. Stops
     // on second tap or when the user leaves discover mode.

@@ -1765,3 +1765,51 @@ main.mode-discover {
   height: 2.4rem;
   font-size: 1.1rem;
 }
+
+/* ---------- Weather forecast row (Unterwegs view) ---------- */
+.weather-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem 0;
+}
+.weather-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1;
+  color: var(--color-text);
+}
+.weather-pill .w-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.weather-pill .w-temps {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.weather-pill .w-sep {
+  opacity: 0.45;
+  margin: 0 0.1rem;
+}
+.weather-pill .w-precip {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-text));
+  border-left: 1px solid color-mix(in srgb, var(--color-rule) 30%, transparent);
+  padding-left: 0.5rem;
+}
+.weather-pill .w-stay {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  border-left: 1px solid color-mix(in srgb, var(--color-rule) 30%, transparent);
+  padding-left: 0.5rem;
+}
