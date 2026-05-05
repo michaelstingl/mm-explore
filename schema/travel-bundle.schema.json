@@ -102,7 +102,7 @@
         "to":            { "type": "string", "minLength": 1, "description": "Display name of destination. Prefer also setting to_place_id when the destination is a known Place." },
         "from_place_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional explicit reference to a Place by id. Authoritative when present; avoids fragile name matching for route rendering." },
         "to_place_id":   { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional explicit reference to a Place by id. For TBD destinations (e.g. a not-yet-decided candidate location), leave unset and use status='candidate' on the concrete per-candidate drive entries instead." },
-        "status":        { "type": "string", "enum": ["candidate", "confirmed"], "description": "Defaults to 'confirmed' when omitted. Use 'candidate' to mark an unconfirmed drive — e.g. one of several alternatives the traveler still has to choose between. Candidate drives render dashed on the map." },
+        "status":        { "type": "string", "enum": ["candidate", "confirmed", "completed", "cancelled"], "description": "Defaults to 'confirmed' when omitted. 'candidate' marks an unconfirmed drive (renders dashed). 'completed' marks a drive that has already happened (renders muted). 'cancelled' marks a planned drive that won't happen (hidden by default)." },
         "km":            { "type": ["integer", "null"], "minimum": 0 },
         "duration_min":  { "type": ["integer", "null"], "minimum": 0, "description": "Total duration including stops, in minutes." },
         "route":         { "type": "string", "description": "Free-form route description (highways, notable waypoints)." },
@@ -152,8 +152,8 @@
         "address":   { "type": "string" },
         "coords":    { "$ref": "#/$defs/Coords" },
         "phone":     { "type": "string" },
-        "check_in":  { "$ref": "#/$defs/DateTime" },
-        "check_out": { "$ref": "#/$defs/DateTime" },
+        "check_in":  { "oneOf": [{ "$ref": "#/$defs/DateTime" }, { "$ref": "#/$defs/Date" }], "description": "Date-only acceptable when check-in time is not yet known (direct bookings). DateTime preferred when known." },
+        "check_out": { "oneOf": [{ "$ref": "#/$defs/DateTime" }, { "$ref": "#/$defs/Date" }] },
         "maps_url":  { "type": "string", "format": "uri", "description": "Deprecated when google_place_id is set." },
         "google_place_id": { "$ref": "#/$defs/GooglePlaceId" },
         "booking": {
@@ -179,7 +179,7 @@
         "id":     { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "name":   { "type": "string", "minLength": 1 },
         "coords": { "$ref": "#/$defs/Coords" },
-        "status": { "type": "string", "enum": ["candidate", "confirmed"], "description": "Defaults to 'confirmed' if omitted. Candidates can ship and be rendered muted until chosen." },
+        "status": { "type": "string", "enum": ["candidate", "confirmed", "completed"], "description": "Defaults to 'confirmed' if omitted. 'candidate' renders muted until chosen. 'completed' marks a place that has already been visited." },
         "pois":   { "type": "array", "items": { "$ref": "#/$defs/Poi" } }
       }
     },
