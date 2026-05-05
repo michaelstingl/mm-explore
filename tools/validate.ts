@@ -5,7 +5,7 @@
 //   bun tools/validate.ts https://.../bundle.json → fetches + validates a remote bundle
 //
 // Flags:
-//   --max-age=48h     Threshold for trip.last_updated freshness (default 48h).
+//   --max-age=2h     Threshold for trip.last_updated freshness (default 2h).
 //                     Accepts s/m/h/d suffixes, e.g. 30m, 24h, 7d.
 //   --strict-age      Treat stale trip.last_updated as a hard failure (exit 2).
 //                     Default behavior: print a warning, exit 0.
@@ -30,7 +30,7 @@ const flagValue = (name: string, fallback?: string): string | undefined => {
 
 const noAgeCheck = flags.includes('--no-age-check');
 const strictAge = flags.includes('--strict-age');
-const maxAgeStr = flagValue('max-age', '48h')!;
+const maxAgeStr = flagValue('max-age', '2h')!;
 
 function parseDuration(s: string): number {
   const m = /^(\d+)\s*(s|m|h|d)$/.exec(s.trim());
