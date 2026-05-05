@@ -17,7 +17,7 @@ const MAPS_APPS = [
 
 /**
  * Build a navigation URL for the given location.
- * location: { coords?: [lat, lon], name?: string, address?: string, maps_url?: string }
+ * location: { coords?: [lat, lon], name?: string, address?: string, maps_url?: string, google_place_id?: string }
  * app: 'apple' | 'google' | 'waze' | 'auto'
  * mode: 'view' (show pin) | 'nav' (start navigation to)
  */
@@ -26,6 +26,19 @@ function buildMapsUrl(location, app = 'auto', mode = 'view') {
   const resolved = app === 'auto'
     ? (/iPad|iPhone|iPod|Mac/.test(navigator.userAgent) ? 'apple' : 'google')
     : app;
+
+  // Google Place ID short-circuit: when present and target is Google Maps,
+  // build the rich Place-card URL. Universal-links into the Google Maps app
+  // on iOS (if installed), opens the web Place card otherwise.
+  if (location.google_place_id && resolved === 'google') {
+    const pid = encodeURIComponent(location.google_place_id);
+    if (mode === 'nav') {
+      const p = new URLSearchParams({ api: '1', destination: location.name || '', destination_place_id: location.google_place_id });
+      if (location.from) p.set('origin', location.from);
+      return `https://www.google.com/maps/dir/?${p}`;
+    }
+    return `https://www.google.com/maps/place/?q=place_id:${pid}`;
+  }
 
   const [lat, lon] = location.coords || [];
   const hasCoords = typeof lat === 'number' && typeof lon === 'number';
@@ -1394,7 +1407,12 @@ document.addEventListener('alpine:init', () => {
         name: r.name,
         meta,
         note: stop.note || null,
-        target: { name: r.name, coords: r.coords, maps_url: stop.maps_url || r.charger?.maps_url || null },
+        target: {
+          name: r.name,
+          coords: r.coords,
+          maps_url: stop.maps_url || r.charger?.maps_url || null,
+          google_place_id: stop.google_place_id || r.charger?.google_place_id || r.place?.google_place_id || null,
+        },
       };
     },
 
