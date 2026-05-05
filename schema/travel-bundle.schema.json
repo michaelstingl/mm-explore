@@ -23,7 +23,12 @@
     "drives":   { "type": "array", "items": { "$ref": "#/$defs/Drive" } },
     "stays":    { "type": "array", "items": { "$ref": "#/$defs/Stay" } },
     "places":   { "type": "array", "items": { "$ref": "#/$defs/Place" } },
-    "chargers": { "type": "array", "items": { "$ref": "#/$defs/Charger" }, "description": "Reusable EV charger entities. Stops can reference these via Stop.charger_id to avoid duplicating coords/operator/kw across multiple drives." }
+    "chargers": { "type": "array", "items": { "$ref": "#/$defs/Charger" }, "description": "Reusable EV charger entities. Stops can reference these via Stop.charger_id to avoid duplicating coords/operator/kw across multiple drives." },
+    "weather": {
+      "type": "object",
+      "description": "Daily weather forecast per stay, written by the weather GitHub Action. Keys are stay ids (matching stays[].id). PWA renders weather for a given Day by finding all stays whose [check_in, check_out] range covers the date.",
+      "additionalProperties": { "$ref": "#/$defs/StayWeather" }
+    }
   },
 
   "$defs": {
@@ -192,6 +197,39 @@
         "coords":   { "$ref": "#/$defs/Coords" },
         "maps_url": { "type": "string", "format": "uri" },
         "note":     { "type": "string", "description": "Short operator note (amenities, payment, layout quirks)." }
+      }
+    },
+
+    "StayWeather": {
+      "type": "object",
+      "required": ["updated_at", "days"],
+      "additionalProperties": false,
+      "description": "Forecast bucket for one stay. Days outside the forecast window (Open-Meteo: ~7 days ahead) are simply absent.",
+      "properties": {
+        "updated_at": { "$ref": "#/$defs/DateTime", "description": "When this bucket was last refreshed by the weather Action (UTC)." },
+        "source":     { "type": "string", "description": "Forecast provider, e.g. 'open-meteo'." },
+        "coords":     { "$ref": "#/$defs/Coords", "description": "Coordinates the forecast was fetched for (typically the stay coords)." },
+        "days": {
+          "type": "object",
+          "description": "Per-date forecast. Keys are ISO calendar dates (YYYY-MM-DD).",
+          "propertyNames": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+          "additionalProperties": { "$ref": "#/$defs/WeatherDay" }
+        }
+      }
+    },
+
+    "WeatherDay": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Daily forecast summary. All fields optional — the Action writes what the provider returned.",
+      "properties": {
+        "tmin":      { "type": "number", "description": "Minimum temperature in °C." },
+        "tmax":      { "type": "number", "description": "Maximum temperature in °C." },
+        "precip_mm": { "type": "number", "minimum": 0, "description": "Total precipitation in millimeters." },
+        "code":      { "type": "integer", "minimum": 0, "description": "WMO weather interpretation code (Open-Meteo daily.weather_code)." },
+        "wind_kmh_max": { "type": "number", "minimum": 0, "description": "Max wind speed in km/h." },
+        "sunrise":   { "$ref": "#/$defs/DateTime" },
+        "sunset":    { "$ref": "#/$defs/DateTime" }
       }
     },
 
