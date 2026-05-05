@@ -1,0 +1,31 @@
+name: Refresh weather forecast
+
+on:
+  schedule:
+    # 18:00 UTC = 20:00 CEST. Cron is UTC-only — adjust if travelling outside CEST.
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (do not patch gist)'
+        type: boolean
+        default: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    environment: trip-active
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Refresh weather
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ vars.GIST_ID }}
+          BUNDLE_FILENAME: ${{ vars.BUNDLE_FILENAME }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+        run: bun tools/update-weather.ts

@@ -238,6 +238,20 @@ Im MVP bereits enthalten (während des Launch-Sprints eingezogen):
 - **Entdecken-Tab** mit Leaflet-Karte, CartoDB-Voyager-Tiles, Route-Polyline (confirmed solid, candidate dashed), Place-POI-Cluster beim Tap
 - **Drive-Candidate-Forks** via `Drive.status: 'candidate'` + `Drive.from_place_id`/`to_place_id` — App rendert Alternativen-Tabs im Unterwegs-Tag + parallele Fork-Pfade auf der Karte
 
+### Wettervorhersage (automatisch)
+
+Eine GitHub Action (`.github/workflows/weather.yml`) holt jeden Abend um 20:00 CEST eine Open-Meteo-Vorhersage für jeden Stay (Coords + `check_in`/`check_out`-Range) und patcht das Ergebnis als `bundle.weather[stay_id]` zurück in den Gist. Open-Meteo ist key-frei.
+
+Setup pro Reise — **GitHub Environment** `trip-active` mit:
+
+| Typ | Name | Inhalt |
+|-----|------|--------|
+| Secret | `GIST_TOKEN` | PAT mit `gist`-Scope (Fine-grained: nur dieser Gist) |
+| Variable | `GIST_ID` | Gist-ID, z.B. `abc123…` |
+| Variable | `BUNDLE_FILENAME` | Filename im Gist, z.B. `travel.json` |
+
+Damit bleibt das Public-Repo generisch — alle reisespezifischen IDs leben im Environment. Manueller Run via Actions-Tab → "Refresh weather forecast" → "Run workflow"; mit `dry_run: true` zum Debuggen ohne Gist-Patch.
+
 ---
 
 ## Tech-Stack
