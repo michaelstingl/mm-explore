@@ -850,7 +850,22 @@ document.addEventListener('alpine:init', () => {
         placeLookup.set(slugify(p.name), p);
       }
       const findPlaceByRef = (ref) => placeLookup.get(normName(ref)) || placeLookup.get(slugify(ref)) || null;
-      const resolveEndpoint = (placeId, displayName) => {
+      // If a Stay shares this place_id and its date range covers the drive
+      // date, prefer its coords — the route then ends at the actual lodging
+      // (e.g. an Agriturismo) instead of the abstract town center.
+      const isoDate = (s) => (s || '').slice(0, 10);
+      const stayCoordsFor = (placeId, driveDate) => {
+        if (!placeId || !driveDate) return null;
+        const dDate = isoDate(driveDate);
+        const match = stays.find(s =>
+          s.place_id === placeId && s.coords &&
+          isoDate(s.check_in) <= dDate && dDate <= isoDate(s.check_out)
+        );
+        return match ? { coords: match.coords } : null;
+      };
+      const resolveEndpoint = (placeId, displayName, driveDate) => {
+        const stayHit = stayCoordsFor(placeId, driveDate);
+        if (stayHit) return stayHit;
         if (placeId && placesById[placeId]?.coords) return placesById[placeId];
         return findPlaceByRef(displayName);
       };
@@ -859,8 +874,8 @@ document.addEventListener('alpine:init', () => {
       const stopPinsLayer = L.layerGroup().addTo(map);
 
       for (const d of (this.bundle.drives || [])) {
-        const from = resolveEndpoint(d.from_place_id, d.from);
-        const to = resolveEndpoint(d.to_place_id, d.to);
+        const from = resolveEndpoint(d.from_place_id, d.from, d.date);
+        const to = resolveEndpoint(d.to_place_id, d.to, d.date);
         if (!from?.coords || !to?.coords) continue;
         const isCandidate = d.status === 'candidate';
 
