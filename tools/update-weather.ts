@@ -245,6 +245,12 @@ for (const stay of stays) {
 
 bundle.weather = weather;
 
+// Stamp trip.last_updated so the app's debug "Bundle" line reflects the most
+// recent automated update, not just the initial bundle setup.
+if (touched > 0 && bundle.trip && typeof bundle.trip === 'object') {
+  (bundle.trip as Record<string, unknown>).last_updated = updatedAt;
+}
+
 console.log(`\n${touched} stays refreshed, ${skipped} skipped.`);
 
 if (DRY_RUN) {
