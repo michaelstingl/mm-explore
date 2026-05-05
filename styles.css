@@ -1813,3 +1813,49 @@ main.mode-discover {
   border-left: 1px solid color-mix(in srgb, var(--color-rule) 30%, transparent);
   padding-left: 0.5rem;
 }
+
+/* ---------- Departure-Stay banner (travel-day morning reminder) ---------- */
+.depart-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  margin: 0 0 1rem 0;
+  border: 1px dashed color-mix(in srgb, var(--color-rule) 50%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+.depart-row .depart-icon {
+  font-size: 1.1rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.depart-row .depart-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.depart-row .depart-label {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+}
+.depart-row .depart-main strong {
+  font-weight: 600;
+}
+.depart-row .depart-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.depart-row .depart-actions .action-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: 1rem;
+}

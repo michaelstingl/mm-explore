@@ -401,8 +401,32 @@
             <!-- During trip: travel day -->
             <template x-if="tripState === 'during' && todayDay?.drive_id">
               <div
-                x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null }"
-                x-init="$watch('todayDay', d => { drive = findDrive(d?.drive_id); stay = d?.stay_id ? findStay(d.stay_id) : null; })">
+                x-data="{ drive: findDrive(todayDay.drive_id), stay: todayDay.stay_id ? findStay(todayDay.stay_id) : null, depart: departureStay(todayDay) }"
+                x-init="$watch('todayDay', d => { drive = findDrive(d?.drive_id); stay = d?.stay_id ? findStay(d.stay_id) : null; depart = departureStay(d); })">
+                <!-- Departure-Stay reminder (morning of a travel day) -->
+                <template x-if="depart">
+                  <div class="depart-row">
+                    <span class="depart-icon" aria-hidden="true">↩</span>
+                    <span class="depart-main">
+                      <span class="depart-label">Check-out</span>
+                      <strong x-text="findPlace(depart.place_id)?.name || depart.name"></strong>
+                      <template x-if="formatTimeOnly(depart.check_out)">
+                        <span class="muted" x-text="' bis ' + formatTimeOnly(depart.check_out)"></span>
+                      </template>
+                    </span>
+                    <span class="depart-actions">
+                      <button @click="copyLocation(depart)" class="action-btn" aria-label="Adresse kopieren">📋</button>
+                      <template x-if="depart.maps_url || depart.coords">
+                        <a :href="mapsUrl(depart, 'view') || depart.maps_url" target="_blank" class="action-btn" @click="logMapsClick(depart, 'view')" aria-label="In Maps anzeigen">📌</a>
+                      </template>
+                      <template x-if="depart.phone">
+                        <a :href="'tel:' + depart.phone" class="action-btn" aria-label="Anrufen">📞</a>
+                      </template>
+                      <button @click="stayDetails = depart" class="action-btn" aria-label="Details">📄</button>
+                    </span>
+                  </div>
+                </template>
+
                 <!-- Candidate alternatives (Kal-2 fork etc.) -->
                 <template x-if="driveSiblings(drive.id).length > 1">
                   <div class="drive-alts">

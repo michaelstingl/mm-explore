@@ -1194,6 +1194,28 @@ document.addEventListener('alpine:init', () => {
       return this.bundle?.chargers?.find(c => c.id === chargerId) || null;
     },
 
+    // The stay we're leaving on a travel day: check_out date matches today, and
+    // we slept there the night before (check_in is earlier). On non-travel days
+    // this is null.
+    departureStay(day) {
+      if (!day?.date) return null;
+      const stays = this.bundle?.stays || [];
+      for (const stay of stays) {
+        if (stay.id === day.stay_id) continue;
+        const ci = (stay.check_in || '').slice(0, 10);
+        const co = (stay.check_out || '').slice(0, 10);
+        if (!ci || !co) continue;
+        if (co === day.date && ci < day.date) return stay;
+      }
+      return null;
+    },
+
+    formatTimeOnly(iso) {
+      if (!iso) return '';
+      const m = /T(\d{2}:\d{2})/.exec(iso);
+      return m ? m[1] : '';
+    },
+
     // Weather: a date is "covered" by a stay if check_in_date <= date <= check_out_date
     // (inclusive on both ends — so the move-out day shows BOTH stays, which is what
     // travelers want: morning weather of the place they're leaving + arrival weather).
