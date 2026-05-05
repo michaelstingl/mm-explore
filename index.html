@@ -146,11 +146,16 @@
                 <button @click="copyDebugSnapshot()" class="btn-copy">📋</button>
               </div>
             </div>
-            <div class="debug-summary" x-show="build">
-              <div><span class="muted">Version</span> <code x-text="build?.version"></code></div>
+            <div class="debug-summary">
+              <div x-show="build"><span class="muted">App</span> <code x-text="build?.version"></code></div>
               <div x-show="build?.deployed_at">
                 <span class="muted">Deployed</span>
                 <span x-text="build && new Date(build.deployed_at).toLocaleString(locale)"></span>
+              </div>
+              <div x-show="bundle">
+                <span class="muted">Bundle</span>
+                <code x-text="bundle?.trip?.last_updated || '—'"></code>
+                <span class="muted" x-show="bundleAgeLabel" x-text="'(' + bundleAgeLabel + ')'"></span>
               </div>
             </div>
             <div x-show="showDebug" class="debug-body">
@@ -180,9 +185,11 @@
                 <strong>Bundle</strong>
                 <div>
                   <div>Trip: <code x-text="bundle?.trip?.title"></code></div>
+                  <div>Schema: <code x-text="'v' + (bundle?.schema_version ?? '?')"></code></div>
+                  <div x-show="bundle?.trip?.last_updated">Last updated: <code x-text="bundle?.trip?.last_updated"></code> <span class="muted" x-text="'(' + bundleAgeLabel + ')'"></span></div>
                   <div>Days: <code x-text="bundle?.days?.length"></code></div>
-                  <div>Drives: <code x-text="bundle?.drives?.length"></code> · Stays: <code x-text="bundle?.stays?.length"></code> · Places: <code x-text="bundle?.places?.length"></code></div>
-                  <div>Age: <code x-text="bundleAgeLabel"></code></div>
+                  <div>Drives: <code x-text="bundle?.drives?.length"></code> · Stays: <code x-text="bundle?.stays?.length"></code> · Places: <code x-text="bundle?.places?.length"></code> · Chargers: <code x-text="bundle?.chargers?.length ?? 0"></code></div>
+                  <div x-show="bundle?.weather">Weather: <code x-text="Object.keys(bundle?.weather || {}).length + ' stays'"></code></div>
                 </div>
               </div>
 
