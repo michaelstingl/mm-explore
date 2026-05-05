@@ -28,16 +28,19 @@ function buildMapsUrl(location, app = 'auto', mode = 'view') {
     : app;
 
   // Google Place ID short-circuit: when present and target is Google Maps,
-  // build the rich Place-card URL. Universal-links into the Google Maps app
-  // on iOS (if installed), opens the web Place card otherwise.
+  // use the official Google Maps URL API. Works in the Google Maps mobile
+  // app AND in the browser. The older /maps/place/?q=place_id:<id> form is
+  // web-only and shows "no results" in the app.
+  // Docs: https://developers.google.com/maps/documentation/urls/get-started
   if (location.google_place_id && resolved === 'google') {
-    const pid = encodeURIComponent(location.google_place_id);
+    const name = location.name || location.to || '';
     if (mode === 'nav') {
-      const p = new URLSearchParams({ api: '1', destination: location.name || '', destination_place_id: location.google_place_id });
+      const p = new URLSearchParams({ api: '1', destination: name, destination_place_id: location.google_place_id });
       if (location.from) p.set('origin', location.from);
       return `https://www.google.com/maps/dir/?${p}`;
     }
-    return `https://www.google.com/maps/place/?q=place_id:${pid}`;
+    const p = new URLSearchParams({ api: '1', query: name, query_place_id: location.google_place_id });
+    return `https://www.google.com/maps/search/?${p}`;
   }
 
   const [lat, lon] = location.coords || [];
