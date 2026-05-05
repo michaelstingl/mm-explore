@@ -134,9 +134,10 @@
         "stop_min":     { "type": "number", "minimum": 0 },
         "soc_ankunft":  { "type": "number", "minimum": 0, "maximum": 100, "description": "Only meaningful for type 'charge'." },
         "soc_abfahrt":  { "type": "number", "minimum": 0, "maximum": 100, "description": "Only meaningful for type 'charge'." },
-        "coords":       { "$ref": "#/$defs/Coords" },
-        "maps_url":     { "type": "string", "format": "uri" },
-        "note":         { "type": "string" }
+        "coords":          { "$ref": "#/$defs/Coords" },
+        "maps_url":        { "type": "string", "format": "uri", "description": "Deprecated when google_place_id is set." },
+        "google_place_id": { "$ref": "#/$defs/GooglePlaceId" },
+        "note":            { "type": "string" }
       }
     },
 
@@ -153,7 +154,8 @@
         "phone":     { "type": "string" },
         "check_in":  { "$ref": "#/$defs/DateTime" },
         "check_out": { "$ref": "#/$defs/DateTime" },
-        "maps_url":  { "type": "string", "format": "uri" },
+        "maps_url":  { "type": "string", "format": "uri", "description": "Deprecated when google_place_id is set." },
+        "google_place_id": { "$ref": "#/$defs/GooglePlaceId" },
         "booking": {
           "type": "object",
           "additionalProperties": false,
@@ -194,9 +196,10 @@
         "network":  { "type": "string", "description": "Roaming/network identifier if different from operator (rare). Free-form." },
         "kw":       { "type": "number", "minimum": 0, "description": "Peak power in kW per stall." },
         "stalls":   { "type": "integer", "minimum": 0, "description": "Number of stalls / charging points." },
-        "coords":   { "$ref": "#/$defs/Coords" },
-        "maps_url": { "type": "string", "format": "uri" },
-        "note":     { "type": "string", "description": "Short operator note (amenities, payment, layout quirks)." }
+        "coords":          { "$ref": "#/$defs/Coords" },
+        "maps_url":        { "type": "string", "format": "uri", "description": "Deprecated when google_place_id is set." },
+        "google_place_id": { "$ref": "#/$defs/GooglePlaceId" },
+        "note":            { "type": "string", "description": "Short operator note (amenities, payment, layout quirks)." }
       }
     },
 
@@ -238,12 +241,13 @@
       "required": ["name"],
       "additionalProperties": false,
       "properties": {
-        "name":     { "type": "string", "minLength": 1 },
-        "type":     { "type": "string", "enum": ["sight", "food", "gelato", "beach", "nature", "charge", "other"] },
-        "coords":   { "$ref": "#/$defs/Coords" },
-        "note":     { "type": "string" },
-        "maps_url": { "type": "string", "format": "uri" },
-        "address":  { "type": "string" }
+        "name":            { "type": "string", "minLength": 1 },
+        "type":            { "type": "string", "enum": ["sight", "food", "gelato", "beach", "nature", "charge", "other"] },
+        "coords":          { "$ref": "#/$defs/Coords" },
+        "note":            { "type": "string" },
+        "maps_url":        { "type": "string", "format": "uri", "description": "Deprecated when google_place_id is set. Generic Apple/Google Maps URL with ?q= text query — fallback for entries without a Google Place ID." },
+        "google_place_id": { "$ref": "#/$defs/GooglePlaceId" },
+        "address":         { "type": "string" }
       }
     },
 
@@ -257,6 +261,12 @@
       "type": "string",
       "description": "ISO-8601 datetime, typically without seconds (YYYY-MM-DDTHH:MM) or with Z suffix for UTC.",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?(Z|[+-]\\d{2}:\\d{2})?$"
+    },
+
+    "GooglePlaceId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{20,}$",
+      "description": "Google Maps Place ID (e.g. 'ChIJt-2vureqahMRXJ7AVYPun6E'). Use to build a rich Place-card URL: https://www.google.com/maps/place/?q=place_id:<id>. Authoritative coords/photos/hours/reviews come from Google Places API. When set, prefer it over maps_url."
     },
 
     "Coords": {
