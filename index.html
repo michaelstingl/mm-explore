@@ -158,7 +158,7 @@
               </div>
               <div x-show="bundle">
                 <span class="muted">Synced</span>
-                <span x-text="bundleAgeLabel || '—'"></span>
+                <code x-text="lastUpdated || '—'"></code>
               </div>
             </div>
             <div x-show="showDebug" class="debug-body">
@@ -190,7 +190,7 @@
                   <div>Trip: <code x-text="bundle?.trip?.title"></code></div>
                   <div>Schema: <code x-text="'v' + (bundle?.schema_version ?? '?')"></code></div>
                   <div x-show="bundle?.trip?.last_updated">Last updated: <code x-text="bundle?.trip?.last_updated"></code></div>
-                  <div>Synced: <code x-text="bundleAgeLabel || '—'"></code></div>
+                  <div>Synced: <code x-text="lastUpdated || '—'"></code> <span class="muted" x-show="bundleAgeLabel" x-text="'(' + bundleAgeLabel + ')'"></span></div>
                   <div>Days: <code x-text="bundle?.days?.length"></code></div>
                   <div>Drives: <code x-text="bundle?.drives?.length"></code> · Stays: <code x-text="bundle?.stays?.length"></code> · Places: <code x-text="bundle?.places?.length"></code> · Chargers: <code x-text="bundle?.chargers?.length ?? 0"></code></div>
                   <div x-show="bundle?.weather">Weather: <code x-text="Object.keys(bundle?.weather || {}).length + ' stays'"></code></div>
