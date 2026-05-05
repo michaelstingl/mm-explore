@@ -266,7 +266,7 @@
     "GooglePlaceId": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{20,}$",
-      "description": "Google Maps Place ID (e.g. 'ChIJt-2vureqahMRXJ7AVYPun6E'). Use to build a rich Place-card URL: https://www.google.com/maps/place/?q=place_id:<id>. Authoritative coords/photos/hours/reviews come from Google Places API. When set, prefer it over maps_url."
+      "description": "Google Maps Place ID (e.g. 'ChIJt-2vureqahMRXJ7AVYPun6E'). Build the rich Place-card URL via the official Google Maps URL API: https://www.google.com/maps/search/?api=1&query=<NAME>&query_place_id=<id>. The 'query' parameter is required (display label, URL-encode it), 'query_place_id' triggers the Place-card lookup. This format works in the Google Maps mobile app AND the web — the older /maps/place/?q=place_id:<id> form is web-only and shows 'no results' in the app. Authoritative coords/photos/hours/reviews come from Google Places API. When set, prefer it over maps_url."
     },
 
     "Coords": {
