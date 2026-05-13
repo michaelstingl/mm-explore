@@ -874,6 +874,7 @@ document.addEventListener('alpine:init', () => {
       const stopPinsLayer = L.layerGroup().addTo(map);
 
       for (const d of (this.bundle.drives || [])) {
+        if (d.status === 'cancelled') continue;
         const from = resolveEndpoint(d.from_place_id, d.from, d.date);
         const to = resolveEndpoint(d.to_place_id, d.to, d.date);
         if (!from?.coords || !to?.coords) continue;
