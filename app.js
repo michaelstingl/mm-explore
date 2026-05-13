@@ -878,6 +878,7 @@ document.addEventListener('alpine:init', () => {
         const to = resolveEndpoint(d.to_place_id, d.to, d.date);
         if (!from?.coords || !to?.coords) continue;
         const isCandidate = d.status === 'candidate';
+        const isCompleted = d.status === 'completed';
 
         // Confirmed waypoints (role === 'stop') sit on the polyline in array
         // order. Alternatives are rendered as muted pins below — they don't
@@ -889,14 +890,15 @@ document.addEventListener('alpine:init', () => {
 
         const lineCoords = [from.coords, ...stopWaypoints.map(w => w.coords), to.coords];
 
-        L.polyline(lineCoords, {
-          className: isCandidate ? 'mm-route-candidate' : 'mm-route',
-          color: isCandidate ? '#E8743B' : '#2E5266',
-          weight: isCandidate ? 2.5 : 3,
-          opacity: 0.75,
-          dashArray: isCandidate ? '4 6' : undefined,
-          interactive: false,
-        }).addTo(map);
+        let polyStyle;
+        if (isCandidate) {
+          polyStyle = { className: 'mm-route-candidate', color: '#E8743B', weight: 2.5, opacity: 0.75, dashArray: '4 6' };
+        } else if (isCompleted) {
+          polyStyle = { className: 'mm-route-completed', color: '#2E5266', weight: 2, opacity: 0.3, dashArray: '2 8' };
+        } else {
+          polyStyle = { className: 'mm-route', color: '#2E5266', weight: 3, opacity: 0.75 };
+        }
+        L.polyline(lineCoords, { ...polyStyle, interactive: false }).addTo(map);
 
         // Render this drive's stop + alternative pins.
         for (const s of (d.stops || [])) {
