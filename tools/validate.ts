@@ -10,6 +10,7 @@
 //   --strict-age      Treat stale trip.last_updated as a hard failure (exit 2).
 //                     Default behavior: print a warning, exit 0.
 //   --no-age-check    Skip the age check entirely.
+//   --no-xref         Skip cross-reference checks (place_id / drive_id / stay_id linkage).
 
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
@@ -30,6 +31,7 @@ const flagValue = (name: string, fallback?: string): string | undefined => {
 
 const noAgeCheck = flags.includes('--no-age-check');
 const strictAge = flags.includes('--strict-age');
+const noXref = flags.includes('--no-xref');
 const maxAgeStr = flagValue('max-age', '2h')!;
 
 function parseDuration(s: string): number {
@@ -61,9 +63,19 @@ const ajv = new (Ajv2020.default ?? Ajv2020)({ allErrors: true, strict: false })
 const validate = ajv.compile(schema);
 
 if (validate(bundle)) {
-  console.log(`✓ ${arg} is valid`);
+  console.log(`✓ ${arg} passes schema`);
   console.log(`  trip: ${bundle.trip?.title}`);
   console.log(`  ${bundle.days?.length ?? 0} days · ${bundle.drives?.length ?? 0} drives · ${bundle.stays?.length ?? 0} stays · ${bundle.places?.length ?? 0} places`);
+
+  if (!noXref) {
+    const xrefErrors = crossRefCheck(bundle);
+    if (xrefErrors.length > 0) {
+      console.log(`\n✗ cross-reference checks failed:\n`);
+      for (const e of xrefErrors) console.log(`  ${e}`);
+      process.exit(3);
+    }
+    console.log(`✓ cross-references consistent`);
+  }
 
   if (!noAgeCheck) {
     const lu = bundle.trip?.last_updated;
@@ -84,6 +96,80 @@ if (validate(bundle)) {
   }
 
   process.exit(0);
+}
+
+function crossRefCheck(b: any): string[] {
+  const errs: string[] = [];
+  const places: any[] = b.places ?? [];
+  const drives: any[] = b.drives ?? [];
+  const stays: any[] = b.stays ?? [];
+  const days: any[] = b.days ?? [];
+
+  const placeIds = new Set(places.map(p => p.id));
+  const driveById = new Map(drives.map(d => [d.id, d]));
+  const stayById = new Map(stays.map(s => [s.id, s]));
+
+  const isoDate = (s: string | undefined) => (s ?? '').slice(0, 10);
+
+  // 7. *_place_id references must exist
+  for (const d of drives) {
+    if (d.from_place_id && !placeIds.has(d.from_place_id))
+      errs.push(`drives[${d.id}].from_place_id "${d.from_place_id}" not in places[]`);
+    if (d.to_place_id && !placeIds.has(d.to_place_id))
+      errs.push(`drives[${d.id}].to_place_id "${d.to_place_id}" not in places[]`);
+  }
+  for (const s of stays) {
+    if (s.place_id && !placeIds.has(s.place_id))
+      errs.push(`stays[${s.id}].place_id "${s.place_id}" not in places[]`);
+  }
+
+  // 8. day.drive_id must reference a non-cancelled drive on the same date
+  // 9. day.stay_id must reference a stay covering day.date
+  // 10. day.type must match drive/stay presence
+  for (const day of days) {
+    const date = isoDate(day.date);
+    const driveId = day.drive_id;
+    const stayId = day.stay_id;
+
+    if (driveId) {
+      const dr = driveById.get(driveId);
+      if (!dr) {
+        errs.push(`days[${date}].drive_id "${driveId}" not in drives[]`);
+      } else {
+        if (dr.status === 'cancelled')
+          errs.push(`days[${date}].drive_id "${driveId}" references a cancelled drive`);
+        if (isoDate(dr.date) !== date)
+          errs.push(`days[${date}].drive_id "${driveId}" has drive.date ${dr.date} — mismatch`);
+      }
+    }
+
+    if (stayId) {
+      const st = stayById.get(stayId);
+      if (!st) {
+        errs.push(`days[${date}].stay_id "${stayId}" not in stays[]`);
+      } else {
+        const ci = isoDate(st.check_in);
+        const co = isoDate(st.check_out);
+        if (!(ci <= date && date <= co))
+          errs.push(`days[${date}].stay_id "${stayId}" — date outside [${ci}, ${co}]`);
+      }
+    }
+
+    // type must be consistent with refs, but allow:
+    //   travel  → drive_id required, stay_id optional (arrival-day pattern)
+    //   stay    → stay_id required, drive_id forbidden
+    //   mixed   → both required
+    if (day.type === 'travel' && !driveId)
+      errs.push(`days[${date}].type "travel" but no drive_id`);
+    if (day.type === 'stay' && driveId)
+      errs.push(`days[${date}].type "stay" but drive_id "${driveId}" present — should be "travel" or "mixed"`);
+    if (day.type === 'stay' && !stayId)
+      errs.push(`days[${date}].type "stay" but no stay_id`);
+    if (day.type === 'mixed' && (!driveId || !stayId))
+      errs.push(`days[${date}].type "mixed" requires both drive_id and stay_id`);
+  }
+
+  return errs;
 }
 
 function formatAge(ms: number): string {
