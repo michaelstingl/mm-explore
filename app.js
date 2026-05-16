@@ -1089,7 +1089,8 @@ document.addEventListener('alpine:init', () => {
         } else if (this._pendingPlaceFocus) {
           this._applyPlaceFocus();
         } else if (pinsLatLngs.length) {
-          map.fitBounds(pinsLatLngs, { padding: [40, 40], maxZoom: 10 });
+          const pad = this.cleanMap ? [80, 80] : [40, 40];
+          map.fitBounds(pinsLatLngs, { padding: pad, maxZoom: 10 });
         }
       }, 100);
     },
