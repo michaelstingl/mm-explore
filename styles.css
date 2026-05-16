@@ -1450,9 +1450,17 @@ body.clean-map .map {
   height: 14px;
 }
 
-/* Clean-Map: Destination-Labels neben den Stay-Pins.
-   Trip-Agent setzt Stay.label_side für Westküsten-Destinations auf 'left'. */
-.leaflet-tooltip.mm-map-label {
+/* Clean-Map: Destination-Labels neben den Stay-Pins. Eigene
+   L.divIcon-Marker statt Leaflet-Tooltips, damit wir links/rechts
+   pixel-genau via transform steuern können. */
+.mm-map-label {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+}
+.mm-map-label .mm-map-label-text {
+  position: absolute;
+  top: 0;
   background: color-mix(in srgb, var(--color-card) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   border-radius: 4px;
@@ -1463,8 +1471,18 @@ body.clean-map .map {
   color: var(--color-accent);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
+  /* Vertikal mittig zum Stay-Pin (Pin ist 22px, Mitte bei 11px) */
+  transform: translateY(-50%);
+  margin-top: 11px;
 }
-.leaflet-tooltip.mm-map-label::before { display: none; }
+.mm-map-label-right .mm-map-label-text {
+  /* Rechts vom Pin: Pin-Radius (11px) + Gap (6px) = 17px */
+  left: 17px;
+}
+.mm-map-label-left .mm-map-label-text {
+  /* Links vom Pin: rechte Kante des Labels bei -17px von Coord */
+  right: 17px;
+}
 
 /* Clean-Map: Sightseeing-Stop — kleiner Terracotta-Stern auf der Linie */
 .mm-pin-sight {

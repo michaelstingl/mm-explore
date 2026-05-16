@@ -897,6 +897,8 @@ document.addEventListener('alpine:init', () => {
         // affect route geometry.
         const stopWaypoints = (d.stops || [])
           .filter(s => (s.role || 'stop') === 'stop')
+          .slice()
+          .sort((a, b) => (a.km_ab_start ?? 0) - (b.km_ab_start ?? 0))
           .map(s => this.resolveStop(s))
           .filter(Boolean);
 
@@ -976,12 +978,13 @@ document.addEventListener('alpine:init', () => {
         } else if (!isTransit) {
           const labelSide = stay.display?.label_side === 'left' ? 'left' : 'right';
           const labelText = place?.name || stay.name;
-          m.bindTooltip(escapeHtml(labelText), {
-            permanent: true,
-            direction: labelSide,
-            offset: labelSide === 'left' ? [-14, 0] : [14, 0],
-            className: 'mm-map-label',
+          const labelIcon = L.divIcon({
+            className: `mm-map-label mm-map-label-${labelSide}`,
+            html: `<span class="mm-map-label-text">${escapeHtml(labelText)}</span>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
           });
+          L.marker(c, { icon: labelIcon, interactive: false, keyboard: false, zIndexOffset: -100 }).addTo(map);
         }
         pinsLatLngs.push(c);
       });
