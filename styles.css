@@ -1362,6 +1362,10 @@ body.clean-map .ios-hint {
 }
 body.clean-map main {
   padding: 0 !important;
+  max-width: none !important;
+}
+body.clean-map .discover {
+  margin: 0 !important;
 }
 body.clean-map .map {
   height: 100dvh;
