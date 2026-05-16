@@ -168,6 +168,14 @@
         },
         "status":    { "type": "string", "enum": ["gebucht", "geplant", "offen", "angeboten", "info"] },
         "kind":      { "type": "string", "enum": ["destination", "transit"], "description": "Optional. 'destination' (default) = stay we travelled TO and spent time at. 'transit' = overnight along a route only because the drive was too long for one day. Used by the Clean-Map share view to render destinations as large filled pins and transits as small hollow rings." },
+        "display": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "View-only rendering hints. Separated from semantic Stay fields so visual concerns don't pollute the entity. New hints are added additively without a schema_version bump.",
+          "properties": {
+            "label_side": { "type": "string", "enum": ["left", "right"], "description": "Side of the marker where the place name label renders in the Clean-Map share view. Default 'right'. Set 'left' for west-coast destinations where a right-side label would overlap the route or sea." }
+          }
+        },
         "note":      { "type": "string", "description": "Short highlight (e.g. 'Rezeption 24/7, Tesla SC am Hotel')." }
       }
     },

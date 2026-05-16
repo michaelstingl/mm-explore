@@ -1446,6 +1446,22 @@ body.clean-map .map {
   height: 14px;
 }
 
+/* Clean-Map: Destination-Labels neben den Stay-Pins.
+   Trip-Agent setzt Stay.label_side für Westküsten-Destinations auf 'left'. */
+.leaflet-tooltip.mm-map-label {
+  background: color-mix(in srgb, var(--color-card) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-display, var(--font-body));
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+.leaflet-tooltip.mm-map-label::before { display: none; }
+
 /* Clean-Map: Sightseeing-Stop — kleiner Terracotta-Stern auf der Linie */
 .mm-pin-sight {
   color: var(--color-primary);

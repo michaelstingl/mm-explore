@@ -973,6 +973,15 @@ document.addEventListener('alpine:init', () => {
         if (!this.cleanMap) {
           m.bindPopup(this._popupHtml(place?.name || stay.name, earliestStayDate(stay.place_id), stay.place_id, true));
           m.on('click', () => this._showPlacePois(stay.place_id));
+        } else if (!isTransit) {
+          const labelSide = stay.display?.label_side === 'left' ? 'left' : 'right';
+          const labelText = place?.name || stay.name;
+          m.bindTooltip(escapeHtml(labelText), {
+            permanent: true,
+            direction: labelSide,
+            offset: labelSide === 'left' ? [-14, 0] : [14, 0],
+            className: 'mm-map-label',
+          });
         }
         pinsLatLngs.push(c);
       });
