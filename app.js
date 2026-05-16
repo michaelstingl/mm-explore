@@ -974,6 +974,31 @@ document.addEventListener('alpine:init', () => {
         pinsLatLngs.push(c);
       });
 
+      // Clean-Mode: zusätzlich Drive-Endpunkte ohne Stay als Marker
+      // (typisch: Home-Place wie Erlangen).
+      if (this.cleanMap) {
+        const stayPlaceIds = new Set(stays.map(s => s.place_id).filter(Boolean));
+        const endpointIds = new Set();
+        for (const d of (this.bundle.drives || [])) {
+          if (d.status === 'cancelled') continue;
+          if (d.from_place_id) endpointIds.add(d.from_place_id);
+          if (d.to_place_id) endpointIds.add(d.to_place_id);
+        }
+        for (const pid of endpointIds) {
+          if (stayPlaceIds.has(pid)) continue;
+          const place = placesById[pid];
+          if (!place?.coords) continue;
+          const icon = L.divIcon({
+            className: 'mm-pin mm-pin-stay',
+            html: `<span class="mm-pin-dot"></span>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+          });
+          L.marker(place.coords, { icon }).addTo(map);
+          pinsLatLngs.push(place.coords);
+        }
+      }
+
       // Place-Pins (Terracotta, Kreis mit Punkt)
       if (!this.cleanMap) places.forEach(place => {
         if (!place.coords) return;
