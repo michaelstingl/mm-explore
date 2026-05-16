@@ -205,6 +205,7 @@ document.addEventListener('alpine:init', () => {
     offline: false,
     view: 'main',           // 'main' | 'settings'
     mode: 'transit',         // 'transit' | 'explore' | 'discover'
+    cleanMap: false,         // ?map=clean — chrome-free share view
     _map: null,
     _mapInited: false,
     geoActive: false,
@@ -257,6 +258,11 @@ document.addEventListener('alpine:init', () => {
       dbg('init · debug is ON (mmDebug(false) to silence)');
       this.parseFragment();
       this.parseDateQuery();
+      const _params = new URLSearchParams(window.location.search);
+      if (_params.get('map') === 'clean') {
+        this.cleanMap = true;
+        document.body.classList.add('clean-map');
+      }
       this.gistUrl = localStorage.getItem(STORAGE_KEY.GIST_URL) || '';
       const storedLocale = localStorage.getItem(STORAGE_KEY.LOCALE_OVERRIDE);
       this.localeOverride = (storedLocale && (storedLocale === 'auto' || isValidLocale(storedLocale))) ? storedLocale : 'auto';
@@ -758,6 +764,11 @@ document.addEventListener('alpine:init', () => {
     },
 
     pickDefaultMode() {
+      if (this.cleanMap) {
+        this.mode = 'discover';
+        this._ensureMapReady();
+        return;
+      }
       const override = localStorage.getItem(STORAGE_KEY.MODE_OVERRIDE);
       if (override === 'transit' || override === 'explore' || override === 'discover') {
         this.mode = override;
@@ -892,7 +903,9 @@ document.addEventListener('alpine:init', () => {
         const lineCoords = [from.coords, ...stopWaypoints.map(w => w.coords), to.coords];
 
         let polyStyle;
-        if (isCandidate) {
+        if (this.cleanMap) {
+          polyStyle = { className: 'mm-route', color: '#2E5266', weight: 3, opacity: 0.8 };
+        } else if (isCandidate) {
           polyStyle = { className: 'mm-route-candidate', color: '#E8743B', weight: 2.5, opacity: 0.75, dashArray: '4 6' };
         } else if (isCompleted) {
           polyStyle = { className: 'mm-route-completed', color: '#2E5266', weight: 2, opacity: 0.3, dashArray: '2 8' };
@@ -900,6 +913,8 @@ document.addEventListener('alpine:init', () => {
           polyStyle = { className: 'mm-route', color: '#2E5266', weight: 3, opacity: 0.75 };
         }
         L.polyline(lineCoords, { ...polyStyle, interactive: false }).addTo(map);
+
+        if (this.cleanMap) continue;
 
         // Render this drive's stop + alternative pins.
         for (const s of (d.stops || [])) {
@@ -949,13 +964,15 @@ document.addEventListener('alpine:init', () => {
         });
         const place = placesById[stay.place_id];
         const m = L.marker(c, { icon }).addTo(map);
-        m.bindPopup(this._popupHtml(place?.name || stay.name, earliestStayDate(stay.place_id), stay.place_id, true));
-        m.on('click', () => this._showPlacePois(stay.place_id));
+        if (!this.cleanMap) {
+          m.bindPopup(this._popupHtml(place?.name || stay.name, earliestStayDate(stay.place_id), stay.place_id, true));
+          m.on('click', () => this._showPlacePois(stay.place_id));
+        }
         pinsLatLngs.push(c);
       });
 
       // Place-Pins (Terracotta, Kreis mit Punkt)
-      places.forEach(place => {
+      if (!this.cleanMap) places.forEach(place => {
         if (!place.coords) return;
         const hasStay = stays.some(s => s.place_id === place.id);
         if (hasStay) return; // already rendered as stay pin

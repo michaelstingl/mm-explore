@@ -1353,6 +1353,21 @@ main.mode-discover {
   padding-bottom: 0;
 }
 
+/* Clean-map share view (?map=clean) — kill all chrome, map fills viewport. */
+body.clean-map header,
+body.clean-map .tab-bar,
+body.clean-map .update-banner,
+body.clean-map .ios-hint {
+  display: none !important;
+}
+body.clean-map main {
+  padding: 0 !important;
+}
+body.clean-map .map {
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
 .map {
   width: 100%;
   /* ~5.5rem header (gutter + h1 + rule) = content above the map */
