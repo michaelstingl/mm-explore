@@ -167,6 +167,7 @@
           }
         },
         "status":    { "type": "string", "enum": ["gebucht", "geplant", "offen", "angeboten", "info"] },
+        "kind":      { "type": "string", "enum": ["destination", "transit"], "description": "Optional. 'destination' (default) = stay we travelled TO and spent time at. 'transit' = overnight along a route only because the drive was too long for one day. Used by the Clean-Map share view to render destinations as large filled pins and transits as small hollow rings." },
         "note":      { "type": "string", "description": "Short highlight (e.g. 'Rezeption 24/7, Tesla SC am Hotel')." }
       }
     },

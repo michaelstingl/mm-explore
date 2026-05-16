@@ -955,15 +955,18 @@ document.addEventListener('alpine:init', () => {
       // Layer group for per-place POI cluster — refilled on each place click.
       this._placePoiLayer = L.layerGroup().addTo(map);
 
-      // Stay-Pins (Adria-Blau, kräftig)
+      // Stay-Pins (Adria-Blau, kräftig). In Clean-Mode wird Stay.kind
+      // ausgewertet: 'transit' rendert als kleiner hohler Ring,
+      // 'destination' (default) als großer gefüllter Pin.
       stays.forEach(stay => {
         const c = stay.coords || placesById[stay.place_id]?.coords;
         if (!c) return;
+        const isTransit = this.cleanMap && stay.kind === 'transit';
         const icon = L.divIcon({
-          className: 'mm-pin mm-pin-stay',
+          className: `mm-pin mm-pin-stay${isTransit ? ' mm-pin-stay-transit' : ''}`,
           html: `<span class="mm-pin-dot"></span>`,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
+          iconSize: isTransit ? [14, 14] : [22, 22],
+          iconAnchor: isTransit ? [7, 7] : [11, 11],
         });
         const place = placesById[stay.place_id];
         const m = L.marker(c, { icon }).addTo(map);
@@ -974,8 +977,8 @@ document.addEventListener('alpine:init', () => {
         pinsLatLngs.push(c);
       });
 
-      // Clean-Mode: zusätzlich Drive-Endpunkte ohne Stay als Marker
-      // (typisch: Home-Place wie Erlangen).
+      // Clean-Mode: Home-Marker für Drive-Endpunkte ohne Stay
+      // (Terracotta-Dot, deutlich kleiner als Destinations).
       if (this.cleanMap) {
         const stayPlaceIds = new Set(stays.map(s => s.place_id).filter(Boolean));
         const endpointIds = new Set();
@@ -989,13 +992,33 @@ document.addEventListener('alpine:init', () => {
           const place = placesById[pid];
           if (!place?.coords) continue;
           const icon = L.divIcon({
-            className: 'mm-pin mm-pin-stay',
+            className: 'mm-pin mm-pin-home',
             html: `<span class="mm-pin-dot"></span>`,
-            iconSize: [22, 22],
-            iconAnchor: [11, 11],
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
           });
           L.marker(place.coords, { icon }).addTo(map);
           pinsLatLngs.push(place.coords);
+        }
+
+        // Sightseeing-Stops (drive.stops[] mit type='sight', role='stop')
+        // als kleine Terracotta-Sterne. Charge/Meal/Rest bleiben aus.
+        for (const d of (this.bundle.drives || [])) {
+          if (d.status === 'cancelled') continue;
+          for (const s of (d.stops || [])) {
+            if (s.type !== 'sight') continue;
+            if ((s.role || 'stop') !== 'stop') continue;
+            const r = this.resolveStop(s);
+            if (!r?.coords) continue;
+            const icon = L.divIcon({
+              className: 'mm-pin mm-pin-sight',
+              html: `<span class="mm-pin-star">★</span>`,
+              iconSize: [18, 18],
+              iconAnchor: [9, 9],
+            });
+            L.marker(r.coords, { icon }).addTo(map);
+            pinsLatLngs.push(r.coords);
+          }
         }
       }
 

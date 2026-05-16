@@ -1430,6 +1430,32 @@ body.clean-map .map {
   box-shadow: none;
 }
 
+/* Clean-Map: Transit-Übernachtung — kleiner hohler Ring, gleiche Farbe */
+.mm-pin-stay-transit .mm-pin-dot {
+  background: var(--color-card);
+  border: 2px solid var(--color-accent);
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Clean-Map: Home (Erlangen) — kleiner Terracotta-Dot */
+.mm-pin-home .mm-pin-dot {
+  background: var(--color-primary);
+  width: 14px;
+  height: 14px;
+}
+
+/* Clean-Map: Sightseeing-Stop — kleiner Terracotta-Stern auf der Linie */
+.mm-pin-sight {
+  color: var(--color-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.mm-pin-star {
+  font-size: 18px;
+  line-height: 1;
+}
+
 /* Geolocation marker: blue dot with soft pulse + accuracy circle drawn
    separately as a Leaflet L.circle. */
 .mm-geo-marker {
