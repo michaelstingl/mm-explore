@@ -914,7 +914,10 @@ document.addEventListener('alpine:init', () => {
         }
         L.polyline(lineCoords, { ...polyStyle, interactive: false }).addTo(map);
 
-        if (this.cleanMap) continue;
+        if (this.cleanMap) {
+          for (const c of lineCoords) pinsLatLngs.push(c);
+          continue;
+        }
 
         // Render this drive's stop + alternative pins.
         for (const s of (d.stops || [])) {
