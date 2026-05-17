@@ -29,7 +29,8 @@ Kein Backend, keine Accounts, kein Login. Wer die Gist-URL kennt, sieht die Date
 
 ## Features
 
-- **Zwei Modi** — Unterwegs (Fahrt + Abend-Unterkunft) und Erleben (Orts-Picker + POIs)
+- **Drei Modi** — Unterwegs (Fahrt + Abend-Unterkunft), Erleben (Orts-Picker + POIs), Entdecken (Karte mit Route + Pins)
+- **Clean-Map-Share-View** — `?map=clean` rendert eine chrome-freie Karte (nur Stays als Marker, einheitliche Linien) zum Teilen mit Familie/Freunden
 - **Kalender-Sheet** mit Icons pro Tag, zeigt nur Reise-Wochen
 - **Navigation-App wählbar** — Apple Maps, Google Maps, Waze (system-default sonst)
 - **Koordinaten-Copy-Button** neben jedem Ort → in myVW oder Notes einfügen
@@ -92,7 +93,7 @@ Um in VS Code (oder jedem IDE mit JSON-Schema-Support) Autocomplete + Inline-Val
 | `trip` | Metadaten der Reise (Titel, Datumsbereich, Fahrzeug, Theme-Farben) | ja |
 | `days[]` | Chronologische Liste aller Reisetage mit `type` (`travel` / `stay` / `mixed`) und Verweisen auf `drive_id` / `stay_id` | ja |
 | `drives[]` | Fahrten mit `from` / `to` / `km` / `duration_min` / `route` / `stops[]` | optional |
-| `stays[]` | Unterkünfte mit `coords` / `phone` / `check_in` / `booking.pin` | optional |
+| `stays[]` | Unterkünfte mit `coords` / `phone` / `check_in` / `booking.pin`. Optional `kind` (`destination` \| `transit`) und `display.label_side` (`left` \| `right`) für die Clean-Map-View | optional |
 | `places[]` | Gruppierte POIs — für Erleben-Modus. Jeder Place hat `pois[]` mit `type` (`sight` / `food` / `beach` / `charge` / `other`) | optional |
 
 Referenzielle Integrität (z.B. `day.drive_id` muss in `drives[]` existieren) wird vom Schema dokumentiert aber nicht erzwungen — der App-Code behandelt dangling refs als "not found" ohne Crash.

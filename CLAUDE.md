@@ -82,6 +82,8 @@ IDs sind kebab-case, Daten ISO (`YYYY-MM-DD` oder `YYYY-MM-DDTHH:MM`). Coords al
 - **Leaflet `fitBounds` auf 0×0-Container verrechnet sich** und zoomt eng auf den geometrischen Mittelpunkt aller Pins (für diese Reise: Adria vor Rimini). Erst `invalidateSize` dann `fitBounds`, beide in einem `setTimeout(…, 100)`.
 - **Leaflet-Map darf nicht per `x-if` auf-/abgebaut werden** — Leaflet hält intern eine Referenz auf den DOM-Container; nach Remount ist die Map leer. Stattdessen `x-show` + Lazy-Init beim ersten `setMode('discover')`.
 - **`button.btn-secondary` überstimmt `.btn-secondary`** per Spezifität. Wenn du einen Border willst, Selektoren paaren: `.btn-secondary, button.btn-secondary { … }`. Gilt analog für Link-Varianten.
+- **Leaflet `bindTooltip` mit `direction: 'left'` + custom `className` mispositioniert** auf First Render. `Tooltip._setPosition` liest `container.offsetWidth` synchron; wenn der className-Stylesheet noch nicht angewendet ist, ist die Breite 0 und das Tooltip snappt auf den Marker-Anchor statt links davon zu sitzen (Race-Condition). Für permanente Per-Marker-Labels mit explizit gewählter Seite ist die robuste Lösung ein eigener `L.divIcon`-Marker mit CSS-positioniertem Text (siehe `mm-map-label` in styles.css) — kein Runtime-Width-Measurement nötig.
+- **Drive-Stops in `drives[].stops[]` müssen nicht in km-Reihenfolge im Array stehen** — App sortiert defensiv nach `km_ab_start` bevor sie als Polyline-Waypoints gerendert werden. Ohne Sort hat die Polyline gezackt, wenn das Array historisch gewachsen ist (z.B. Orvieto km 463, dann Campi Bisenzio km 279, dann Fiano Romano km 580 → Linie macht Schleife durch Florenz).
 
 ## Debug
 
